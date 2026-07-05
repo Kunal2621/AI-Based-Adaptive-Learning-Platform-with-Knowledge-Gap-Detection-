@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { getPlatformStats } = require('../controllers/adminController');
+const { getAdminDashboard, getAllUsers, updateUserRole, deleteUser } = require('../controllers/adminController');
 const { protect } = require('../middleware/authMiddleware');
 
-// Route secured via token interceptor
-router.get('/stats', protect, getPlatformStats);
+router.get('/dashboard', protect, getAdminDashboard);
+router.get('/users', protect, getAllUsers);
+router.put('/users/:id/role', protect, updateUserRole);
+router.delete('/users/:id', protect, deleteUser);
 
 module.exports = router;
