@@ -1,118 +1,234 @@
-import {useState,useEffect} from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import API from "../../services/api";
-import {useNavigate} from "react-router-dom";
 
-export default function Quiz(){
+export default function Quiz() {
+  const navigate = useNavigate();
 
-const navigate=useNavigate();
+  const [quiz, setQuiz] = useState([]);
+  const [courses, setCourses] = useState([]);
 
-const[quiz,setQuiz]=useState([]);
+  const [title, setTitle] = useState("");
+  const [course, setCourse] = useState("");
+  const [topic, setTopic] = useState("");
 
-useEffect(()=>{
+  const [loading, setLoading] = useState(false);
 
-fetchQuiz();
+  useEffect(() => {
+    fetchQuiz();
+    fetchCourses();
+  }, []);
 
-},[]);
+  const fetchQuiz = async () => {
+    try {
+      const res = await API.get("/quiz");
+      setQuiz(res.data.data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
-const fetchQuiz=async()=>{
+  const fetchCourses = async () => {
+    try {
+      const res = await API.get("/course");
+      setCourses(res.data.data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
-const res=await API.get("/quiz");
+  const generateAIQuiz = async (e) => {
+    e.preventDefault();
 
-setQuiz(res.data.data);
+    if (!title || !course || !topic) {
+      return alert("Please fill all fields.");
+    }
 
-};
+    try {
+      setLoading(true);
 
-return(
+      const body = {
+        title,
+        description: "",
+        course,
+        questions: [
+          {
+            question: topic,
+          },
+        ],
+      };
 
-<div className="space-y-6">
+      const res = await API.post("/quiz", body);
 
-<div className="flex justify-between">
+      alert(res.data.message);
 
-<h1 className="text-3xl font-bold">
-Quiz
-</h1>
+      setTitle("");
+      setCourse("");
+      setTopic("");
 
-<button
+      fetchQuiz();
+    } catch (err) {
+      console.log(err);
+      alert(err.response?.data?.message || "Quiz generation failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-onClick={()=>navigate("/teacher/quiz/create")}
+  return (
+    <div className="space-y-8">
 
-className="bg-purple-600 text-white px-5 py-2 rounded"
+      {/* AI Generator Card */}
 
->
+      <div className="bg-white rounded-xl shadow p-6">
 
-New Quiz
+        <h2 className="text-2xl font-bold mb-6">
+          Generate AI Quiz
+        </h2>
 
-</button>
+        <form
+          onSubmit={generateAIQuiz}
+          className="space-y-5"
+        >
 
-</div>
+          <div>
 
-<div className="bg-white rounded-xl shadow">
+            <label className="font-medium">
+              Quiz Title
+            </label>
 
-<table className="w-full">
+            <input
+              type="text"
+              placeholder="Enter quiz title"
+              className="w-full border rounded-lg p-3 mt-2"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
 
-<thead>
+          </div>
 
-<tr className="border-b">
+          <div>
 
-<th className="p-4">
-Title
-</th>
+            <label className="font-medium">
+              Select Course
+            </label>
 
-<th>
-Course
-</th>
+            <select
+              className="w-full border rounded-lg p-3 mt-2"
+              value={course}
+              onChange={(e) => setCourse(e.target.value)}
+            >
 
-<th>
-Questions
-</th>
+              <option value="">
+                Select Course
+              </option>
 
-</tr>
+              {courses.map((c) => (
+                <option
+                  key={c._id}
+                  value={c._id}
+                >
+                  {c.title}
+                </option>
+              ))}
 
-</thead>
+            </select>
 
-<tbody>
+          </div>
 
-{
+          <div>
 
-quiz.map((q)=>(
+            <label className="font-medium">
+              Topic
+            </label>
 
-<tr
-key={q._id}
-className="border-b hover:bg-gray-50 cursor-pointer"
->
+            <input
+              type="text"
+              placeholder="Example : React Hooks, Operating System, DBMS Joins..."
+              className="w-full border rounded-lg p-3 mt-2"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+            />
 
-<td className="p-4">
+          </div>
 
-{q.title}
+          <button
+            type="submit"
+            disabled={loading}
+            className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700"
+          >
+            {loading ? "Generating AI Quiz..." : "Generate Quiz"}
+          </button>
 
-</td>
+        </form>
 
-<td>
+      </div>
 
-{q.course?.title}
+      {/* Quiz List */}
 
-</td>
+      <div className="bg-white rounded-xl shadow">
 
-<td>
+        <div className="p-5 border-b">
 
-{q.questions.length}
+          <h2 className="text-2xl font-bold">
+            Generated Quizzes
+          </h2>
 
-</td>
+        </div>
 
-</tr>
+        <table className="w-full">
 
-))
+          <thead>
 
-}
+            <tr className="border-b">
 
-</tbody>
+              <th className="p-4 text-left">
+                Title
+              </th>
 
-</table>
+              <th className="text-left">
+                Topic
+              </th>
 
-</div>
+              <th className="text-left">
+                Questions
+              </th>
 
-</div>
+            </tr>
 
-);
+          </thead>
 
+          <tbody>
+
+            {quiz.map((q) => (
+
+              <tr
+                key={q._id}
+                className="border-b hover:bg-gray-50"
+              >
+
+                <td className="p-4">
+                  {q.title}
+                </td>
+
+                <td>
+                  {q.topic}
+                </td>
+
+                <td>
+                  {q.questions.length}
+                </td>
+
+              </tr>
+
+            ))}
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+  );
 }
