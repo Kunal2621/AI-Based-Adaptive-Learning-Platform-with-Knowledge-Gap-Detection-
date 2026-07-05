@@ -2,7 +2,7 @@ const Course = require('../models/Course');
 const Submission = require('../models/Submission');
 const Quiz = require('../models/Quiz');
 const User = require('../models/User');
-const ai = require('../config/geminiConfig'); // Centralized Gemini connection instance
+const ai = require('../config/geminiConfig'); 
 
 // @desc    Get metrics summary for primary Teacher Dashboard
 // @route   GET /api/teacher/dashboard
@@ -13,43 +13,32 @@ const getTeacherDashboard = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Not authorized as a teacher' });
     }
 
-    // 1. Fetch count metrics from Live Database
     const totalCourses = await Course.countDocuments({ teacher: req.user._id });
-    
-    // Get all courses managed by this teacher
     const teacherCourses = await Course.find({ teacher: req.user._id });
     const courseIds = teacherCourses.map(c => c._id);
-
-    // Dynamic Quiz count linked to teacher's courses
     const totalQuizzes = await Quiz.countDocuments({ courseId: { $in: courseIds } });
 
-    // Fetch all unique students who have submitted answers for this teacher's quizzes
     const submissions = await Submission.find().populate({
       path: 'quiz',
       match: { courseId: { $in: courseIds } }
     });
     
     const validSubmissions = submissions.filter(s => s.quiz !== null);
-    
-    // Extract unique student array IDs
     const uniqueStudentIds = [...new Set(validSubmissions.map(s => s.student.toString()))];
     const totalStudents = uniqueStudentIds.length;
 
-    // Calculate aggregated real completion rate
     let totalScoreSum = 0;
     validSubmissions.forEach(s => totalScoreSum += s.percentage);
     const baseCompletionRate = validSubmissions.length > 0 ? Math.round(totalScoreSum / validSubmissions.length) : 0;
 
-    // Return the absolute exact keys mapping your teammate's dashboard configuration!
     res.status(200).json({
       success: true,
       totalCourses,
       totalStudents,
       totalQuizzes,
-      completion: baseCompletionRate || 82, // Standard safety placeholder baseline if fresh DB
+      completion: baseCompletionRate || 82, 
       teacherName: req.user.name || "Professor"
     });
-
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error pulling dashboard stats wrapper.', error: error.message });
   }
@@ -78,7 +67,6 @@ const getTeacherAnalytics = async (req, res) => {
     validSubmissions.forEach(s => totalScoreSum += s.percentage);
     const avgScore = validSubmissions.length > 0 ? Math.round(totalScoreSum / validSubmissions.length) : 0;
 
-    // Formulating summary profiles mapping Analytics anchors
     const summary = {
       avgScore: avgScore,
       completion: validSubmissions.length > 0 ? 86 : 78,
@@ -86,7 +74,6 @@ const getTeacherAnalytics = async (req, res) => {
       certificates: validSubmissions.length > 0 ? Math.round(validSubmissions.length * 0.8) : 0
     };
 
-    // Calculate real dynamic course scores for 'CourseBarChart'
     const courseScores = teacherCourses.map(course => {
       const courseSubs = validSubmissions.filter(s => s.quiz.courseId.toString() === course._id.toString());
       let sum = 0;
@@ -97,7 +84,6 @@ const getTeacherAnalytics = async (req, res) => {
       };
     });
 
-    // Populate live activity matrix values for progress tracking charts
     const weeklyStudents = [
       { name: "Mon", students: validSubmissions.length > 0 ? 8 : 40 },
       { name: "Tue", students: validSubmissions.length > 0 ? 15 : 55 },
@@ -108,27 +94,52 @@ const getTeacherAnalytics = async (req, res) => {
       { name: "Sun", students: validSubmissions.length > 0 ? 14 : 122 }
     ];
 
-    res.status(200).json({
-      success: true,
-      summary,
-      courseScores,
-      weeklyStudents
-    });
-
+    res.status(200).json({ success: true, summary, courseScores, weeklyStudents });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error packing analytical data.', error: error.message });
   }
 };
 
-// @desc    Create a new course
+// @desc    Create a new course with AI-Generated Syllabus Modules
 // @route   POST /api/teacher/courses
 // @access  Private (Teacher/Admin only)
 const createCourse = async (req, res) => {
   try {
-    const { title, description, category, level, modules } = req.body;
+    const { title, description, category, level } = req.body;
 
     if (req.user.role.toLowerCase() !== 'teacher' && req.user.role.toLowerCase() !== 'admin') {
       return res.status(403).json({ success: false, message: 'Not authorized as a teacher' });
+    }
+
+    const prompt = `
+      You are an elite academic curriculum designer and computer science professor.
+      The institution wants to create an automated professional course titled: "${title}".
+      Course Focus Scope: "${description}".
+      Target Student Difficulty Level: "${level}".
+      
+      Generate a structured syllabus layout containing exactly 3 logical progressive modules, and each module must have exactly 2 core specific technical lessons.
+      Return ONLY a raw valid JSON array matching this strict schema format without markdown wraps, backticks, or code blocks:
+      [
+        {
+          "moduleName": "Module Heading String",
+          "lessons": [
+            { "title": "Lesson 1 Detail Title" },
+            { "title": "Lesson 2 Detail Title" }
+          ]
+        }
+      ]
+    `;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+    });
+
+    let generatedModules;
+    try {
+      generatedModules = JSON.parse(response.text.trim());
+    } catch (parseError) {
+      return res.status(500).json({ success: false, message: 'AI Syllabus generation format anomaly. Please resubmit.', error: parseError.message });
     }
 
     const course = await Course.create({
@@ -136,13 +147,13 @@ const createCourse = async (req, res) => {
       description,
       category,
       level,
-      modules: modules || [],
+      modules: generatedModules, 
       teacher: req.user._id 
     });
 
-    res.status(201).json({ success: true, message: 'Course created successfully', data: course });
+    res.status(201).json({ success: true, message: 'Course with automated AI syllabus generated successfully!', data: course });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server Error in creating course', error: error.message });
+    res.status(500).json({ success: false, message: 'Server Error in creating AI course', error: error.message });
   }
 };
 
@@ -162,18 +173,52 @@ const getTeacherCourses = async (req, res) => {
   }
 };
 
-// 🔥 INTERCEPTOR ROUTE MODULE: CONVERTS MANUAL FRONTEND FORM TO FULL AI GENERATOR 🔥
+// @desc    Update a course
+// @route   PUT /api/teacher/courses/:id
+// @access  Private (Only the owner Teacher or Admin)
+const updateCourse = async (req, res) => {
+  try {
+    let course = await Course.findById(req.params.id);
+    if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
+
+    if (course.teacher.toString() !== req.user._id.toString() && req.user.role.toLowerCase() !== 'admin') {
+      return res.status(401).json({ success: false, message: 'Not authorized to update this course' });
+    }
+
+    course = await Course.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    res.status(200).json({ success: true, message: 'Course updated successfully', data: course });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server Error in updating course', error: error.message });
+  }
+};
+
+// @desc    Delete a course
+// @route   DELETE /api/teacher/courses/:id
+// @access  Private (Only the owner Teacher or Admin)
+const deleteCourse = async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.id);
+    if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
+
+    if (course.teacher.toString() !== req.user._id.toString() && req.user.role.toLowerCase() !== 'admin') {
+      return res.status(401).json({ success: false, message: 'Not authorized to delete this course' });
+    }
+
+    await Course.findByIdAndDelete(req.params.id);
+    res.status(200).json({ success: true, message: 'Course removed successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server Error in deleting course', error: error.message });
+  }
+};
+
 // @desc    Intercept manual forms and generate questions dynamically via Gemini 
 // @route   POST /api/quiz
 // @access  Private (Teacher/Admin)
 const interceptAndGenerateAIQuiz = async (req, res) => {
   try {
     const { title, description, course, questions } = req.body;
-    
-    // Frontend ke question input box ki text string ko AI prompt target topic vector maanenge
     const targetTopic = (questions && questions[0] && questions[0].question) ? questions[0].question : "Advanced Architecture Patterns";
 
-    // Call Gemini to auto-generate multiple choices, distractors, rationales, and hints!
     const prompt = `
       You are an elite automated examination software engine. 
       The professor wants to generate an advanced technical evaluation track under the topic scope heading: "${targetTopic}".
@@ -207,7 +252,6 @@ const interceptAndGenerateAIQuiz = async (req, res) => {
       return res.status(500).json({ success: false, message: "AI generation text layout mismatch. Please try again." });
     }
 
-    // Save completely dynamic AI generated content to cloud MongoDB Atlas
     const finalQuiz = await Quiz.create({
       title: title || "AI Automated Tracks Evaluation",
       topic: targetTopic,
@@ -216,12 +260,7 @@ const interceptAndGenerateAIQuiz = async (req, res) => {
       questions: parsedQuestions
     });
 
-    res.status(201).json({
-      success: true,
-      message: "AI Quiz system compilation complete!",
-      data: finalQuiz
-    });
-
+    res.status(201).json({ success: true, message: "AI Quiz system compilation complete!", data: finalQuiz });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error processing AI intercept pipeline.', error: error.message });
   }
@@ -232,5 +271,7 @@ module.exports = {
   getTeacherAnalytics,
   createCourse,
   getTeacherCourses,
+  updateCourse,
+  deleteCourse,
   interceptAndGenerateAIQuiz
 };
