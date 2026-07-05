@@ -173,6 +173,20 @@ const getTeacherCourses = async (req, res) => {
   }
 };
 
+// 👉 FIXED: Added Single Course Fetching Logic
+// @desc    Get single course detailed track profile
+// @route   GET /api/teacher/courses/:id
+// @access  Private
+const getCourseById = async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.id);
+    if (!course) return res.status(404).json({ success: false, message: 'Target course not found' });
+    res.status(200).json({ success: true, data: course });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error retrieving single course object.', error: error.message });
+  }
+};
+
 // @desc    Update a course
 // @route   PUT /api/teacher/courses/:id
 // @access  Private (Only the owner Teacher or Admin)
@@ -208,6 +222,54 @@ const deleteCourse = async (req, res) => {
     res.status(200).json({ success: true, message: 'Course removed successfully' });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server Error in deleting course', error: error.message });
+  }
+};
+
+// 👉 FIXED: Added Students Index Fetching Logic
+// @desc    Get all students registered under platform context
+// @route   GET /api/teacher/students
+// @access  Private
+const getTeacherStudents = async (req, res) => {
+  try {
+    const students = await User.find({ role: 'student' }).select('-password');
+    res.status(200).json({ success: true, count: students.length, data: students });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error retrieving students array.', error: error.message });
+  }
+};
+
+// 👉 FIXED: Added Teacher Profile Methods
+// @desc    Get profile details
+// @route   GET /api/teacher/profile
+const getTeacherProfile = async (req, res) => {
+  try {
+    const profile = await User.findById(req.user._id).select('-password');
+    res.status(200).json({ success: true, data: profile });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Update profile details
+// @route   PUT /api/teacher/profile
+const updateTeacherProfile = async (req, res) => {
+  try {
+    const updatedUser = await User.findByIdAndUpdate(req.user._id, req.body, { new: true }).select('-password');
+    res.status(200).json({ success: true, message: 'Profile updated', data: updatedUser });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// 👉 FIXED: Added Quiz Performance Analytical Tracker
+// @desc    Get detailed submission breakdowns for a quiz
+// @route   GET /api/teacher/quiz-reports/:quizId
+const getQuizPerformanceReport = async (req, res) => {
+  try {
+    const reports = await Submission.find({ quiz: req.params.quizId }).populate('student', 'name email');
+    res.status(200).json({ success: true, data: reports });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed fetching reports payload.', error: error.message });
   }
 };
 
@@ -271,7 +333,12 @@ module.exports = {
   getTeacherAnalytics,
   createCourse,
   getTeacherCourses,
+  getCourseById,
   updateCourse,
   deleteCourse,
+  getTeacherStudents,
+  getTeacherProfile,
+  updateTeacherProfile,
+  getQuizPerformanceReport,
   interceptAndGenerateAIQuiz
 };
