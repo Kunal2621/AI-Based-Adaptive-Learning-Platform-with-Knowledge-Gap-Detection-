@@ -23,13 +23,15 @@ load();
 
 },[]);
 
-const load=async()=>{
-
-const res=await API.get("/teacher/profile");
-
-setForm(res.data.data);
-
-}
+const load = async () => {
+  try {
+    const res = await API.get("/teacher/profile");
+    setForm(res.data.data);
+  } catch (err) {
+    console.log(err);
+    alert("Failed to load profile");
+  }
+};
 
 const change=(e)=>{
 
@@ -43,17 +45,28 @@ setForm({
 
 }
 
-const save=async(e)=>{
+const save = async (e) => {
+  e.preventDefault();
 
-e.preventDefault();
+  try {
+    const res = await API.put("/teacher/profile", form);
 
-await API.put("/teacher/profile",form);
+    alert(res.data.message || "Profile Updated");
 
-alert("Profile Updated");
+    navigate("/teacher/profile");
 
-navigate("/teacher/profile");
+  } catch (err) {
 
-}
+    console.log(err);
+
+    alert(
+      err.response?.data?.message ||
+      err.message ||
+      "Update Failed"
+    );
+
+  }
+};
 
 return(
 
@@ -113,6 +126,7 @@ className="w-full border p-3 rounded"
 />
 
 <button
+type="submit"
 className="bg-purple-600 text-white px-6 py-3 rounded">
 
 Save
