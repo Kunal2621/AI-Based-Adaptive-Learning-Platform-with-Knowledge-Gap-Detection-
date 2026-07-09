@@ -10,7 +10,7 @@ const PAGE_TITLES = {
   "/teacher/courses/create": "Create Course",
   "/teacher/students": "Students",
   "/teacher/analytics": "Analytics",
-  "/teacher/profile": "Profile",
+  "/teacher/profile": "Profile", 
   "/teacher/quiz/create": "Create Quiz",
 };
 
