@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 import front from "../../assests/images/front.png"; // Fixed assets spelling
+import AuthLayout from "./AuthLayout";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -31,7 +32,8 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-white to-purple-50">
+    <AuthLayout>
+
       <div className="w-[390px] bg-white p-[35px] rounded-[18px] shadow-[0_20px_50px_rgba(124,58,237,0.12)]">
         
         {/* Header Block */}
@@ -88,7 +90,8 @@ const ForgotPassword = () => {
           <Link to="/login" className="text-purple-600 font-semibold ml-1 hover:underline">Login</Link>
         </p>
       </div>
-    </div>
+    
+    </AuthLayout>
   );
 };
 
