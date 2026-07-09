@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, User } from "lucide-react";
 import authService from "../../services/authService"; // 
 import front from "../../assests/images/front.png"; 
+import AuthLayout from "./AuthLayout";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -60,7 +61,8 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-white to-purple-50 py-6">
+    <AuthLayout>
+
       <div className="w-[390px] bg-white p-[35px] rounded-[18px] shadow-[0_20px_50px_rgba(124,58,237,0.12)]">
         
         {/* Logo Banner */}
@@ -197,7 +199,7 @@ const Register = () => {
           <Link to="/login" className="text-purple-600 font-semibold ml-1 hover:underline">Login</Link>
         </p>
       </div>
-    </div>
+    </AuthLayout>
   );
 };
 
