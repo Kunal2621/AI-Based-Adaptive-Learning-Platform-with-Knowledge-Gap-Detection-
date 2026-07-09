@@ -3,6 +3,7 @@ import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import authService from "../../services/authService"; // 
 import front from "../../assests/images/front.png"; // Fixed assets spelling
+import AuthLayout from "./AuthLayout";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -45,7 +46,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-white to-purple-50">
+    <AuthLayout>
       <div className="w-[390px] bg-white p-[35px] rounded-[18px] shadow-[0_20px_50px_rgba(124,58,237,0.12)]">
         
         {/* Logo */}
@@ -153,7 +154,7 @@ const Login = () => {
           <Link to="/register" className="text-purple-600 font-semibold ml-1 hover:underline">Register</Link>
         </p>
       </div>
-    </div>
+    </AuthLayout>
   );
 };
 
