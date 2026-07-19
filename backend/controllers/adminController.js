@@ -21,7 +21,13 @@ const getAdminDashboard = async (req, res) => {
     const totalQuizzes = await Quiz.countDocuments({});
     const totalSubmissions = await Submission.countDocuments({});
 
-    // 2. Fetch recent user registrations to display in administrative tables
+    // 🧠 2. ADVANCED AI METRIC: Global Platform Knowledge Gap Insight Summary
+    const avgScoreAggregation = await Submission.aggregate([
+      { $group: { _id: null, avgScore: { $avg: "$score" } } }
+    ]);
+    const platformAverageScore = avgScoreAggregation.length > 0 ? avgScoreAggregation[0].avgScore.toFixed(2) : 0;
+
+    // 3. Fetch recent user registrations to display in administrative tables
     const recentUsers = await User.find().select('-password').sort({ createdAt: -1 }).limit(5);
 
     res.status(200).json({
@@ -32,7 +38,8 @@ const getAdminDashboard = async (req, res) => {
         totalStudents,
         totalCourses,
         totalQuizzes,
-        totalSubmissions
+        totalSubmissions,
+        platformAverageScore: parseFloat(platformAverageScore) // System health benchmark
       },
       recentUsers
     });
@@ -66,7 +73,7 @@ const updateUserRole = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Access denied.' });
     }
 
-    const { role } = req.body; // Expecting: 'student', 'teacher', or 'admin'
+    const { role } = req.body;
     if (!role) return res.status(400).json({ success: false, message: 'Target role parameter required.' });
 
     const user = await User.findByIdAndUpdate(
@@ -83,7 +90,7 @@ const updateUserRole = async (req, res) => {
   }
 };
 
-// @desc    Hard purge a user profile registry from database
+// @desc    Hard purge a user profile registry from database + Cascade Delete Data
 // @route   DELETE /api/admin/users/:id
 // @access  Private (Admin only)
 const deleteUser = async (req, res) => {
@@ -92,12 +99,40 @@ const deleteUser = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Access denied.' });
     }
 
-    const user = await User.findByIdAndDelete(req.params.id);
+    const userId = req.params.id;
+    const user = await User.findById(userId);
+    
     if (!user) return res.status(404).json({ success: false, message: 'User profile target missing.' });
 
-    res.status(200).json({ success: true, message: 'Account context purged permanently from global schema logs.' });
+    // 🧹 CASCADE CLEANUP: Agar user teacher hai toh uske saare assets udao, student hai toh submissions
+    if (user.role === 'teacher') {
+      await Course.deleteMany({ creator: userId });
+      await Quiz.deleteMany({ creator: userId });
+    } else if (user.role === 'student') {
+      await Submission.deleteMany({ studentId: userId });
+    }
+
+    // Aakhri me User ko hard delete karo
+    await User.findByIdAndDelete(userId);
+
+    res.status(200).json({ success: true, message: 'Account context and relative collections purged permanently.' });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Purge script crashed.', error: error.message });
+  }
+};
+
+// @desc    Get all courses across platform for moderation
+// @route   GET /api/admin/courses
+// @access  Private (Admin only)
+const getAllCoursesAdmin = async (req, res) => {
+  try {
+    if (req.user.role.toLowerCase() !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Access denied.' });
+    }
+    const courses = await Course.find().populate('creator', 'name email');
+    res.status(200).json({ success: true, count: courses.length, data: courses });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Moderation index fetch failed.', error: error.message });
   }
 };
 
@@ -105,5 +140,6 @@ module.exports = {
   getAdminDashboard,
   getAllUsers,
   updateUserRole,
-  deleteUser
+  deleteUser,
+  getAllCoursesAdmin 
 };
