@@ -1,10 +1,16 @@
 import React from "react";
 import illustration from "../../assests/images/getStarted.png";
+import Navbar from "../../components/common/Navbar";
 
 const AuthLayout = ({ children }) => {
   return (
     <div className="min-h-screen bg-white">
-      <div className="grid min-h-screen lg:grid-cols-2">
+
+      {/* Navbar */}
+      <Navbar />
+
+      {/* Content */}
+      <div className="grid min-h-[calc(100vh-80px)] lg:grid-cols-2">
 
         {/* Left Illustration */}
         <div className="hidden lg:flex items-center justify-center bg-white px-10">
@@ -27,6 +33,7 @@ const AuthLayout = ({ children }) => {
         </div>
 
       </div>
+
     </div>
   );
 };
