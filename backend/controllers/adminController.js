@@ -27,7 +27,7 @@ const getAdminDashboard = async (req, res) => {
     ]);
     const platformAverageScore = avgScoreAggregation.length > 0 ? avgScoreAggregation[0].avgScore.toFixed(2) : 0;
 
-    // 3. Fetch recent user registrations to display in administrative tables
+    // 3. Fetch recent user registrations
     const recentUsers = await User.find().select('-password').sort({ createdAt: -1 }).limit(5);
 
     res.status(200).json({
@@ -39,7 +39,7 @@ const getAdminDashboard = async (req, res) => {
         totalCourses,
         totalQuizzes,
         totalSubmissions,
-        platformAverageScore: parseFloat(platformAverageScore) // System health benchmark
+        platformAverageScore: parseFloat(platformAverageScore)
       },
       recentUsers
     });
@@ -100,22 +100,25 @@ const deleteUser = async (req, res) => {
     }
 
     const userId = req.params.id;
+
+    // 🔒 PROTECTION: Admin khud ko delete na kar sake
+    if (userId === req.user._id.toString()) {
+      return res.status(400).json({ success: false, message: 'Security Breach: Self-deletion is prohibited.' });
+    }
+
     const user = await User.findById(userId);
-    
     if (!user) return res.status(404).json({ success: false, message: 'User profile target missing.' });
 
     const userRole = user.role.toLowerCase();
 
-    // 🧹 CASCADE CLEANUP: Matching exact Schema fields
+    // 🧹 CASCADE CLEANUP
     if (userRole === 'teacher') {
-      // Course schema me field name 'teacher' hai
       await Course.deleteMany({ teacher: userId });
       await Quiz.deleteMany({ creator: userId });
     } else if (userRole === 'student') {
       await Submission.deleteMany({ studentId: userId });
     }
 
-    // Aakhri me User ko hard delete karo
     await User.findByIdAndDelete(userId);
 
     res.status(200).json({ success: true, message: 'Account context and relative collections purged permanently.' });
@@ -139,10 +142,36 @@ const getAllCoursesAdmin = async (req, res) => {
   }
 };
 
+// 🆕 @desc  Delete a course (Admin Moderation)
+// @route   DELETE /api/admin/courses/:id
+// @access  Private (Admin only)
+const deleteCourseAdmin = async (req, res) => {
+  try {
+    if (req.user.role.toLowerCase() !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Access denied.' });
+    }
+
+    const courseId = req.params.id;
+    const course = await Course.findByIdAndDelete(courseId);
+
+    if (!course) {
+      return res.status(404).json({ success: false, message: 'Target course missing.' });
+    }
+
+    // 🧹 Course ke sath uske quizzes bhi delete kar do
+    await Quiz.deleteMany({ courseId: courseId });
+
+    res.status(200).json({ success: true, message: 'Course and related quizzes purged successfully.' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Course deletion failed.', error: error.message });
+  }
+};
+
 module.exports = {
   getAdminDashboard,
   getAllUsers,
   updateUserRole,
   deleteUser,
-  getAllCoursesAdmin 
+  getAllCoursesAdmin,
+  deleteCourseAdmin
 };
