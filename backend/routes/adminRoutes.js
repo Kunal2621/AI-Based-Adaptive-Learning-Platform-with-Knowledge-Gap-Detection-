@@ -7,7 +7,8 @@ const {
   getAllUsers, 
   updateUserRole, 
   deleteUser, 
-  getAllCoursesAdmin 
+  getAllCoursesAdmin,
+  deleteCourseAdmin 
 } = require('../controllers/adminController');
 
 const { protect } = require('../middleware/authMiddleware');
