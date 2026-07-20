@@ -74,7 +74,7 @@ function AdminSidebar({ isOpen, onClose, onLogout }) {
         </div>
 
         {/* Panel label */}
-        <p className="px-6 text-label-sm text-on-surface-variant -mt-2 mb-4">
+        <p className="px-6 text-headline-sm font-bold text-primary -mt-1 mb-4">
           Admin Panel
         </p>
 
@@ -130,7 +130,7 @@ function AdminNavbar({ title, onMenuClick }) {
         >
           <Menu size={22} />
         </button>
-        <h1 className="text-headline-md font-bold text-on-surface truncate">
+        <h1 className="text-headline-md font-bold truncate bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
           {title}
         </h1>
       </div>
