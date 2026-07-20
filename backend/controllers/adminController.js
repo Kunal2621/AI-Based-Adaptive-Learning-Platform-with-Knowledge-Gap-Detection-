@@ -104,11 +104,14 @@ const deleteUser = async (req, res) => {
     
     if (!user) return res.status(404).json({ success: false, message: 'User profile target missing.' });
 
-    // 🧹 CASCADE CLEANUP: Agar user teacher hai toh uske saare assets udao, student hai toh submissions
-    if (user.role === 'teacher') {
-      await Course.deleteMany({ creator: userId });
+    const userRole = user.role.toLowerCase();
+
+    // 🧹 CASCADE CLEANUP: Matching exact Schema fields
+    if (userRole === 'teacher') {
+      // Course schema me field name 'teacher' hai
+      await Course.deleteMany({ teacher: userId });
       await Quiz.deleteMany({ creator: userId });
-    } else if (user.role === 'student') {
+    } else if (userRole === 'student') {
       await Submission.deleteMany({ studentId: userId });
     }
 
@@ -129,7 +132,7 @@ const getAllCoursesAdmin = async (req, res) => {
     if (req.user.role.toLowerCase() !== 'admin') {
       return res.status(403).json({ success: false, message: 'Access denied.' });
     }
-    const courses = await Course.find().populate('creator', 'name email');
+    const courses = await Course.find().populate('teacher', 'name email');
     res.status(200).json({ success: true, count: courses.length, data: courses });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Moderation index fetch failed.', error: error.message });
