@@ -12,6 +12,9 @@ const adminRoutes = require('./routes/adminRoutes');
 // Load controllers and middleware for the proxy intercept handler
 const { interceptAndGenerateAIQuiz } = require('./controllers/teacherController');
 const { protect } = require('./middleware/authMiddleware');
+// Analytics & Reports Routes
+const adminAnalyticsRoutes = require('./routes/adminAnalyticsRoutes');
+const teacherAnalyticsRoutes = require('./routes/teacherAnalyticsRoutes');
 
 // Models Import for Compatibility
 const Course = require('./models/Course'); 
@@ -118,6 +121,10 @@ app.use('/api/admin', adminRoutes);
 
 // Fallback/Core dynamic quiz pipeline channel
 app.use('/api/quiz', require('./routes/quizRoutes'));
+
+// Analytics & Reports Endpoints Mount
+app.use('/api/admin', adminAnalyticsRoutes);   // Handles /api/admin/analytics & /api/admin/reports
+app.use('/api/teacher', teacherAnalyticsRoutes); // Handles /api/teacher/analytics & /api/teacher/reports
 
 // Base Route Test
 app.get('/', (req, res) => {
