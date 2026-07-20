@@ -118,13 +118,21 @@ const createCourse = async (req, res) => {
       Target Student Difficulty Level: "${level}".
       
       Generate a structured syllabus layout containing exactly 3 logical progressive modules, and each module must have exactly 2 core specific technical lessons.
+      For each lesson, you MUST generate an extensive, detailed explanatory educational content block (at least 150-200 words per lesson explaining the subtopics, concept definition, and a practical example).
+
       Return ONLY a raw valid JSON array matching this strict schema format without markdown wraps, backticks, or code blocks:
       [
         {
           "moduleName": "Module Heading String",
           "lessons": [
-            { "title": "Lesson 1 Detail Title" },
-            { "title": "Lesson 2 Detail Title" }
+            { 
+              "title": "Lesson 1 Detail Title",
+              "content": "Detailed text explanation of this lesson covering key concepts, bullet points of subtopics, and quick summary guidelines."
+            },
+            { 
+              "title": "Lesson 2 Detail Title",
+              "content": "Detailed text explanation of this lesson covering key concepts, bullet points of subtopics, and quick summary guidelines."
+            }
           ]
         }
       ]
