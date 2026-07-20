@@ -1,3 +1,4 @@
+
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
@@ -67,6 +68,8 @@ app.get('/api/student/enrolled-courses', protect, async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 });
+
+
 
 // 👉 NEW COMPATIBILITY ROUTE: Fix 404 /api/courses (All active courses)
 app.get('/api/courses', protect, async (req, res) => {
