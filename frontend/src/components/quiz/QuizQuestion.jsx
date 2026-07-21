@@ -1,11 +1,11 @@
 /**
  * QuizQuestion
  * Props:
- *   question        – question object { _id, questionText, type, options, topic, marks }
- *   questionNumber  – 1-based current question index
- *   totalQuestions  – total number of questions
- *   selectedAnswer  – currently selected answer string (or "")
- *   onAnswer        – (questionId, answer) => void
+ *   question        – question object directly pulled from the active MongoDB schema index
+ *   questionNumber  – 1-based sequential tracking count
+ *   totalQuestions  – length validation variable bound
+ *   selectedAnswer  – raw selected options key mapping parameters string
+ *   onAnswer        – custom execution hook parameter: (questionId, textValue) => void
  */
 export default function QuizQuestion({
   question,
@@ -16,98 +16,74 @@ export default function QuizQuestion({
 }) {
   if (!question) return null;
 
-  const { _id, questionText, type, options, topic, marks } = question;
+  // FIXED: Pulling 'answerOptions' from target Mongoose model properties instead of 'options'
+  const { _id, questionText, answerOptions = [], topic = "General Architecture" } = question;
 
   return (
-    <div className="glass-card rounded-2xl p-6 space-y-5">
-      {/* Meta row */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <span className="px-2.5 py-0.5 bg-primary/10 text-primary text-xs font-bold rounded-full">
+    <div className="bg-white border border-gray-100 rounded-2xl p-6 space-y-5 shadow-sm">
+      {/* Structural Metadata Rows */}
+      <div className="flex items-center gap-2 flex-wrap text-xs">
+        <span className="px-2.5 py-1 bg-purple-50 text-purple-700 font-bold rounded-full border border-purple-100">
           Q {questionNumber} of {totalQuestions}
         </span>
         {topic && (
-          <span className="px-2 py-0.5 bg-surface-container text-on-surface-variant text-xs rounded-full">
+          <span className="px-2 py-1 bg-gray-50 border text-gray-500 rounded-full font-medium">
             {topic}
-          </span>
-        )}
-        {marks > 1 && (
-          <span className="ml-auto text-xs text-on-surface-variant flex items-center gap-1">
-            <span className="material-symbols-outlined text-xs">stars</span>
-            {marks} marks
           </span>
         )}
       </div>
 
-      {/* Question text */}
-      <p className="text-base font-medium leading-relaxed text-on-surface">
+      {/* Question context display heading */}
+      <p className="text-base font-semibold leading-relaxed text-gray-800">
         {questionText}
       </p>
 
-      {/* ── MCQ / True-False ── */}
-      {(type === "mcq" || type === "true_false") && (
-        <div className="space-y-3">
-          {(options || []).map((opt, idx) => {
-            const isSelected = selectedAnswer === opt;
-            return (
-              <button
-                key={idx}
-                onClick={() => onAnswer(_id, opt)}
-                className={`w-full text-left p-4 rounded-xl border-2 transition-all duration-150 flex items-center gap-3 group ${
+      {/* MCQ Multi Option Interactivity Loops Matrix Grid */}
+      <div className="space-y-3">
+        {answerOptions.map((opt, idx) => {
+          // FIXED: Safeguarding object loop fields unpacking opt.text accurately
+          const optionText = opt.text || "";
+          const isSelected = selectedAnswer === optionText;
+
+          return (
+            <button
+              key={opt._id || idx}
+              type="button"
+              onClick={() => onAnswer(_id, optionText)}
+              className={`w-full text-left p-4 rounded-xl border transition flex items-center gap-3 group text-sm ${
+                isSelected
+                  ? "border-purple-600 bg-purple-50/40"
+                  : "border-gray-200 bg-white hover:border-purple-300 hover:bg-purple-50/10"
+              }`}
+            >
+              {/* Alpha Enumerator Character Circle Box */}
+              <span
+                className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 transition-colors ${
                   isSelected
-                    ? "border-primary bg-primary/5"
-                    : "border-outline-variant bg-surface-container hover:border-primary/40 hover:bg-primary/5"
+                    ? "bg-purple-600 text-white"
+                    : "bg-gray-100 text-gray-500 group-hover:bg-purple-100 group-hover:text-purple-700"
                 }`}
               >
-                {/* Letter badge */}
-                <span
-                  className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 transition-colors ${
-                    isSelected
-                      ? "bg-primary text-white"
-                      : "bg-surface-dim text-on-surface-variant group-hover:bg-primary/20"
-                  }`}
-                >
-                  {String.fromCharCode(65 + idx)}
+                {String.fromCharCode(65 + idx)}
+              </span>
+
+              {/* Functional Dynamic Label String displays values */}
+              <span className={`flex-1 leading-normal ${isSelected ? "text-purple-900 font-semibold" : "text-gray-700"}`}>
+                {optionText}
+              </span>
+
+              {/* Status Checked vector overlays */}
+              {isSelected && (
+                <span className="text-purple-600 bg-purple-100/50 p-1 rounded-full flex items-center justify-center flex-shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                    <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" />
+                  </svg>
                 </span>
-
-                {/* Option text */}
-                <span
-                  className={`text-sm flex-1 ${
-                    isSelected ? "text-primary font-medium" : "text-on-surface"
-                  }`}
-                >
-                  {opt}
-                </span>
-
-                {/* Check icon when selected */}
-                {isSelected && (
-                  <span
-                    className="material-symbols-outlined text-primary text-base flex-shrink-0"
-                    style={{ fontVariationSettings: '"FILL" 1' }}
-                  >
-                    check_circle
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      )}
-
-      {/* ── Short Answer ── */}
-      {type === "short_answer" && (
-        <div>
-          <textarea
-            value={selectedAnswer || ""}
-            onChange={(e) => onAnswer(_id, e.target.value)}
-            placeholder="Type your answer here…"
-            rows={4}
-            className="w-full p-4 bg-surface-container border-2 border-outline-variant rounded-xl text-sm resize-none focus:outline-none focus:border-primary transition-colors placeholder:text-on-surface-variant/50"
-          />
-          <p className="text-xs text-on-surface-variant mt-1.5">
-            {(selectedAnswer || "").length} characters typed
-          </p>
-        </div>
-      )}
+              )}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
