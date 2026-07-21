@@ -39,7 +39,9 @@ export default function Dashboard() {
       });
 
       // Real Teacher Name
-      setTeacherName(data.teacherName);
+      const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
+      const activeName = data.teacherName || loggedInUser.name || "Professor";
+      setTeacherName(activeName);
 
       // 🟢 Real-time Chart Data set kar rahe hain backend response se
       if (data.weeklyProgress) {
