@@ -14,10 +14,13 @@ const generateToken = (id) => {
 // @access  Public
 exports.registerUser = async (req, res) => {
   try {
-    const { fullName, email, password, role } = req.body;
+    const { fullName, name, email, password, role } = req.body;
+    
+    // Accept either fullName or name from frontend request
+    const displayName = fullName || name;
 
     // 1. Validation check
-    if (!fullName || !email || !password || !role) {
+    if (!displayName || !email || !password || !role) {
       return res.status(400).json({ message: 'Please fill in all fields' });
     }
 
@@ -31,9 +34,10 @@ exports.registerUser = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // 4. Create User in MongoDB
+    // 4. Create User in MongoDB (Saving both name and fullName to handle schema compatibility)
     const user = await User.create({
-      fullName,
+      name: displayName,
+      fullName: displayName,
       email,
       password: hashedPassword,
       role,
@@ -42,7 +46,8 @@ exports.registerUser = async (req, res) => {
     if (user) {
       res.status(201).json({
         _id: user._id,
-        fullName: user.fullName,
+        name: user.name || user.fullName,
+        fullName: user.fullName || user.name,
         email: user.email,
         role: user.role,
         token: generateToken(user._id), // Immediate login after signup
@@ -84,10 +89,13 @@ exports.loginUser = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // 5. Send Response with JWT Token
+    // 5. Send Response with JWT Token (Providing both name and fullName)
+    const activeName = user.name || user.fullName || "Professor";
+
     res.status(200).json({
       _id: user._id,
-      fullName: user.fullName,
+      name: activeName,
+      fullName: activeName,
       email: user.email,
       role: user.role,
       token: generateToken(user._id), // Token used for frontend sessions
