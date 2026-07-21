@@ -1,5 +1,4 @@
 // src/pages/admin/Settings.jsx
-
 import { useState } from "react";
 import { Save, Shield, Bot, Bell, Globe, Key } from "lucide-react";
 
@@ -20,7 +19,7 @@ function Toggle({ value, onChange }) {
 
 function Section({ title, description, icon: Icon, children }) {
   return (
-    <div className="bg-surface-container-lowest rounded-xl p-5 sm:p-6">
+    <div className="bg-surface-container-lowest rounded-2xl shadow-sm border border-black/5 hover:shadow-md transition-shadow p-5 sm:p-6">
       <div className="flex items-center gap-3 mb-5">
         <div className="w-10 h-10 rounded-xl bg-primary-fixed flex items-center justify-center flex-shrink-0">
           <Icon size={19} className="text-primary" />
@@ -68,24 +67,23 @@ export default function AdminSettings() {
     setTimeout(() => setSaved(false), 2500);
   };
 
-  const inputClass = "border border-black/10 rounded-xl px-3 py-2 text-label-md text-on-surface bg-background outline-none focus:border-primary w-52";
+  const inputClass = "border border-black/10 rounded-xl px-3 py-2 text-label-md text-on-surface bg-background outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-shadow w-52";
 
   return (
     <div className="max-w-container-max mx-auto space-y-6">
 
-      {/* Save button */}
-      <div className="flex justify-end">
+      {/* Sticky save bar */}
+      <div className="sticky top-0 z-10 flex justify-end -mx-4 sm:-mx-6 px-4 sm:px-6 py-2 bg-background/80 backdrop-blur-sm">
         <button
           onClick={handleSave}
-          className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-label-sm font-bold transition-all
-            ${saved ? "bg-green-500 text-white" : "primary-gradient text-white hover:opacity-90"}`}
+          className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-label-sm font-bold shadow-sm transition-all
+            ${saved ? "bg-green-500 text-white" : "primary-gradient text-white hover:opacity-90 hover:-translate-y-0.5"}`}
         >
           <Save size={16} />
           {saved ? "Saved ✓" : "Save Changes"}
         </button>
       </div>
 
-      {/* General */}
       <Section title="General" description="Basic platform configuration" icon={Globe}>
         <Row label="Platform name" description="Shown in the browser tab and emails">
           <input value={platformName} onChange={(e) => setPlatformName(e.target.value)} className={inputClass} />
@@ -95,7 +93,6 @@ export default function AdminSettings() {
         </Row>
       </Section>
 
-      {/* AI */}
       <Section title="AI & Gemini API" description="Control AI features and cost limits" icon={Bot}>
         <Row label="Enable AI features" description="Turns on all Gemini-powered features">
           <Toggle value={aiEnabled} onChange={setAiEnabled} />
@@ -111,7 +108,6 @@ export default function AdminSettings() {
         </Row>
       </Section>
 
-      {/* Security */}
       <Section title="Security" description="Authentication and access controls" icon={Shield}>
         <Row label="Require MFA for admins" description="Admins must verify with a second factor">
           <Toggle value={mfaRequired} onChange={setMfaRequired} />
@@ -123,14 +119,13 @@ export default function AdminSettings() {
           <Toggle value={auditLog} onChange={setAuditLog} />
         </Row>
         <Row label="API secret key" description="Used by the backend to sign JWTs">
-          <button className="flex items-center gap-2 border border-black/10 rounded-xl px-3 py-2 text-label-md text-on-surface-variant hover:bg-surface-container transition-colors">
+          <button className="flex items-center gap-2 border border-black/10 rounded-xl px-3 py-2 text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">
             <Key size={14} />
             Rotate key
           </button>
         </Row>
       </Section>
 
-      {/* Notifications */}
       <Section title="Notifications" description="Control what alerts are sent to admins" icon={Bell}>
         <Row label="Email alerts" description="Send important alerts to the support email">
           <Toggle value={emailAlerts} onChange={setEmailAlerts} />

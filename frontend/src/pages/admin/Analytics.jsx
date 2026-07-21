@@ -1,4 +1,6 @@
+// src/pages/admin/Analytics.jsx
 import { useState, useEffect } from "react";
+import { TrendingUp, Target } from "lucide-react";
 import adminService from "../../services/adminService";
 
 const MONTH_NAMES = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -34,18 +36,23 @@ export default function AdminAnalytics() {
     <div className="max-w-container-max mx-auto space-y-6">
       <h1 className="text-headline-lg font-bold text-on-surface">Analytics</h1>
 
-      <div className="bg-surface-container-lowest rounded-xl p-5 sm:p-6">
-        <h2 className="text-headline-md font-bold text-on-surface mb-4">User Growth (Monthly Signups)</h2>
+      <div className="bg-surface-container-lowest rounded-2xl shadow-sm border border-black/5 hover:shadow-md transition-shadow p-5 sm:p-6">
+        <div className="flex items-center gap-2.5 mb-5">
+          <div className="w-9 h-9 rounded-xl bg-primary-fixed flex items-center justify-center">
+            <TrendingUp size={17} className="text-primary" />
+          </div>
+          <h2 className="text-headline-md font-bold text-on-surface">User Growth (Monthly Signups)</h2>
+        </div>
         {userGrowth.length === 0 ? (
-          <p className="text-label-sm text-on-surface-variant">No registration data yet.</p>
+          <p className="text-label-sm text-on-surface-variant text-center py-6">No registration data yet.</p>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-3.5">
             {userGrowth.map((m) => (
               <div key={m._id} className="flex items-center gap-3">
                 <span className="w-10 text-label-sm text-on-surface-variant flex-shrink-0">{MONTH_NAMES[m._id]}</span>
                 <div className="flex-1 h-3 bg-surface-container rounded-full overflow-hidden">
                   <div
-                    className="h-full rounded-full bg-primary transition-all duration-500"
+                    className="h-full rounded-full bg-primary transition-all duration-700"
                     style={{ width: `${(m.count / maxGrowth) * 100}%` }}
                   />
                 </div>
@@ -56,18 +63,23 @@ export default function AdminAnalytics() {
         )}
       </div>
 
-      <div className="bg-surface-container-lowest rounded-xl p-5 sm:p-6">
-        <h2 className="text-headline-md font-bold text-on-surface mb-4">Top Platform-Wide Knowledge Gaps</h2>
+      <div className="bg-surface-container-lowest rounded-2xl shadow-sm border border-black/5 hover:shadow-md transition-shadow p-5 sm:p-6">
+        <div className="flex items-center gap-2.5 mb-5">
+          <div className="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center">
+            <Target size={17} className="text-red-500" />
+          </div>
+          <h2 className="text-headline-md font-bold text-on-surface">Top Platform-Wide Knowledge Gaps</h2>
+        </div>
         {globalKnowledgeGaps.length === 0 ? (
-          <p className="text-label-sm text-on-surface-variant">No knowledge gap data yet.</p>
+          <p className="text-label-sm text-on-surface-variant text-center py-6">No knowledge gap data yet.</p>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-3.5">
             {globalKnowledgeGaps.map((gap, i) => (
               <div key={i} className="flex items-center gap-3">
                 <span className="w-40 text-label-sm text-on-surface truncate flex-shrink-0">{gap._id}</span>
                 <div className="flex-1 h-3 bg-surface-container rounded-full overflow-hidden">
                   <div
-                    className="h-full rounded-full bg-red-500 transition-all duration-500"
+                    className="h-full rounded-full bg-red-500 transition-all duration-700"
                     style={{ width: `${(gap.count / maxGap) * 100}%` }}
                   />
                 </div>
