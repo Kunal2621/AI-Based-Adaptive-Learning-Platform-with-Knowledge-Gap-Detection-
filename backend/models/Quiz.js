@@ -1,5 +1,34 @@
-
 const mongoose = require('mongoose');
+
+const OptionSchema = new mongoose.Schema({
+  text: { 
+    type: String, 
+    required: true 
+  },
+  isCorrect: { 
+    type: Boolean, 
+    default: false 
+  },
+  rationale: { 
+    type: String 
+  } // Why it's correct/incorrect provided by Gemini AI
+});
+
+const QuestionSchema = new mongoose.Schema({
+  questionText: {
+    type: String,
+    required: true
+  },
+  answerOptions: [OptionSchema],
+  hint: {
+    type: String
+  },
+  difficulty: {
+    type: String,
+    enum: ["Easy", "Medium", "Hard", "Advanced"],
+    default: "Medium"
+  }
+});
 
 const QuizSchema = new mongoose.Schema({
   title: {
@@ -20,66 +49,13 @@ const QuizSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  questions: [
-    {
-      questionText: {
-        type: String,
-        required: true
-      },
-      answerOptions: [
-        {
-          text: { type: String, required: true },
-          rationale: { type: String } // Why it's correct/incorrect provided by AI
-        }
-      ],
-      hint: {
-        type: String
-      },
-      difficulty: {
-        type: String,
-        default: 'Advanced'
-      }
-    }
-  ]
+  questions: [QuestionSchema],
+  
+  // 🟢 Publish/Assign Status Flag (Default false/Draft, Publish dabane par true ho jayega)
+  isAssigned: {
+    type: Boolean,
+    default: false
+  }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Quiz', QuizSchema);
-
-
-const QuestionSchema = new mongoose.Schema({
-  questionText: {
-    type: String,
-    required: true,
-  },
-
-  answerOptions: [
-    {
-      text: {
-        type: String,
-        required: true,
-      },
-
-      isCorrect: {
-        type: Boolean,
-        required: true,
-      },
-
-      rationale: String,
-    },
-  ],
-
-  hint: {
-    type: String,
-    required: true,
-  },
-
-  difficulty: {
-    type: String,
-    enum: ["Easy", "Medium", "Hard"],
-    default: "Medium",
-  },
-});
-
-
-module.exports = mongoose.model("Quiz", QuizSchema);
-
