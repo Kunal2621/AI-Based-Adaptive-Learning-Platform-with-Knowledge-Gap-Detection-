@@ -7,43 +7,79 @@ const ai = require('../config/geminiConfig');
 // @desc    Get metrics summary for primary Teacher Dashboard
 // @route   GET /api/teacher/dashboard
 // @access  Private (Teacher/Admin only)
+// @desc    Get metrics summary for primary Teacher Dashboard
+// @route   GET /api/teacher/dashboard
+// @access  Private (Teacher/Admin only)
+// @desc    Get metrics summary for primary Teacher Dashboard
+// @route   GET /api/teacher/dashboard
+// @access  Private (Teacher/Admin only)
 const getTeacherDashboard = async (req, res) => {
   try {
     if (req.user.role.toLowerCase() !== 'teacher' && req.user.role.toLowerCase() !== 'admin') {
       return res.status(403).json({ success: false, message: 'Not authorized as a teacher' });
     }
 
-    const totalCourses = await Course.countDocuments({ teacher: req.user._id });
-    const teacherCourses = await Course.find({ teacher: req.user._id });
-    const courseIds = teacherCourses.map(c => c._id);
-    const totalQuizzes = await Quiz.countDocuments({ courseId: { $in: courseIds } });
+    const teacherId = req.user._id;
 
+    // 1. Real Teacher Name
+    const teacherName = req.user.name || "Professor";
+
+    // 2. Real Courses & Recent Courses
+    const teacherCourses = await Course.find({ teacher: teacherId }).sort({ createdAt: -1 });
+    const totalCourses = teacherCourses.length;
+    const courseIds = teacherCourses.map(c => c._id);
+
+    // 3. Quizzes & Submissions
+    const totalQuizzes = await Quiz.countDocuments({ courseId: { $in: courseIds } });
+    
     const submissions = await Submission.find().populate({
       path: 'quiz',
       match: { courseId: { $in: courseIds } }
     });
     
     const validSubmissions = submissions.filter(s => s.quiz !== null);
+    
+    // Unique Students count
     const uniqueStudentIds = [...new Set(validSubmissions.map(s => s.student.toString()))];
     const totalStudents = uniqueStudentIds.length;
 
+    // 4. Real Completion Rate (Average Score of all submissions)
     let totalScoreSum = 0;
-    validSubmissions.forEach(s => totalScoreSum += s.percentage);
-    const baseCompletionRate = validSubmissions.length > 0 ? Math.round(totalScoreSum / validSubmissions.length) : 0;
+    validSubmissions.forEach(s => totalScoreSum += (s.percentage || 0));
+    const realCompletionRate = validSubmissions.length > 0 ? Math.round(totalScoreSum / validSubmissions.length) : 0;
+
+    // 5. 🔥 REAL-TIME CHART DATA (Days of the week based on actual Submissions)
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const realWeeklyProgress = days.map((dayName, dayIndex) => {
+      // Is Specific day ke valid submissions filter kar rahe hain
+      const daySubmissions = validSubmissions.filter(s => {
+        const subDate = new Date(s.createdAt || Date.now());
+        return subDate.getDay() === dayIndex;
+      });
+
+      let dayScoreSum = 0;
+      daySubmissions.forEach(s => dayScoreSum += (s.percentage || 0));
+      const avgScore = daySubmissions.length > 0 ? Math.round(dayScoreSum / daySubmissions.length) : 0;
+
+      return {
+        name: dayName,
+        score: avgScore
+      };
+    });
 
     res.status(200).json({
       success: true,
+      teacherName,
       totalCourses,
       totalStudents,
       totalQuizzes,
-      completion: baseCompletionRate || 82, 
-      teacherName: req.user.name || "Professor"
+      completion: realCompletionRate,
+      weeklyProgress: realWeeklyProgress // 👈 Live MongoDB Real Data
     });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error pulling dashboard stats wrapper.', error: error.message });
   }
 };
-
 // @desc    Get detailed chart analytics for Teacher Analytics Page
 // @route   GET /api/teacher/analytics
 // @access  Private (Teacher/Admin only)
@@ -117,14 +153,22 @@ const createCourse = async (req, res) => {
       Course Focus Scope: "${description}".
       Target Student Difficulty Level: "${level}".
       
-      Generate a structured syllabus layout containing exactly 3 logical progressive modules, and each module must have exactly 2 core specific technical lessons.
+      Generate a structured syllabus layout containing exactly 5 logical progressive modules, and each module must have exactly 2 core specific technical lessons.
+      For each lesson, you MUST generate an extensive, detailed explanatory educational content block (at least 150-200 words per lesson explaining the subtopics, concept definition, and a practical example).
+
       Return ONLY a raw valid JSON array matching this strict schema format without markdown wraps, backticks, or code blocks:
       [
         {
           "moduleName": "Module Heading String",
           "lessons": [
-            { "title": "Lesson 1 Detail Title" },
-            { "title": "Lesson 2 Detail Title" }
+            { 
+              "title": "Lesson 1 Detail Title",
+              "content": "Detailed text explanation of this lesson covering key concepts, bullet points of subtopics, and quick summary guidelines."
+            },
+            { 
+              "title": "Lesson 2 Detail Title",
+              "content": "Detailed text explanation of this lesson covering key concepts, bullet points of subtopics, and quick summary guidelines."
+            }
           ]
         }
       ]
@@ -285,7 +329,7 @@ const interceptAndGenerateAIQuiz = async (req, res) => {
       You are an elite automated examination software engine. 
       The professor wants to generate an advanced technical evaluation track under the topic scope heading: "${targetTopic}".
       
-      Generate exactly 3 professional computer science multiple choice questions based on this.
+      Generate exactly 5 professional computer science multiple choice questions based on this.
       Return ONLY a raw valid JSON array matching this strict schema structure without markdown wraps or code blocks:
       [
         {

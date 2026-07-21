@@ -8,6 +8,9 @@ export default function CourseDetails() {
 
   const [course, setCourse] = useState(null);
 
+  // ── CODE WORD SYNC: Sirf ye state add ki hai modules open/close track karne ke liye ──
+  const [expandedModule, setExpandedModule] = useState(null);
+
   useEffect(() => {
     fetchCourse();
   }, []);
@@ -86,32 +89,59 @@ export default function CourseDetails() {
 
           ) : (
 
-            course.modules.map((module, index) => (
+            course.modules.map((module, index) => {
+              // ── CODE WORD SYNC: Check kar rahe hain ki ye module open hai ya nahi ──
+              const isCurrentExpanded = expandedModule === index;
 
-              <div
-                key={index}
-                className="border rounded-xl p-4 mb-4"
-              >
+              return (
+                <div
+                  key={index}
+                  className="border rounded-xl p-4 mb-4"
+                >
+                  {/* ── CODE WORD SYNC: Header ko clickable banaya aur cursor-pointer add kiya bina words badle ── */}
+                  <div 
+                    onClick={() => setExpandedModule(isCurrentExpanded ? null : index)}
+                    className="flex justify-between items-center cursor-pointer select-none"
+                  >
+                    <h3 className="font-semibold">
+                      {module.moduleName}
+                    </h3>
+                    <span className="text-gray-400 text-xs">
+                      {isCurrentExpanded ? "▲ Hide Lessons" : "▼ Show Lessons"}
+                    </span>
+                  </div>
 
-                <h3 className="font-semibold">
-                  {module.moduleName}
-                </h3>
+                  {/* ── CODE WORD SYNC: Lessons sirf tabhi dikhenge jab module par click hoga ── */}
+                  {isCurrentExpanded && (
+                    <ul className="mt-4 list-none ml-0 space-y-3 border-t pt-3">
+                      {module.lessons.map((lesson, i) => (
+                        <li 
+                          key={i} 
+                          className="flex justify-between items-center bg-gray-50 p-2.5 rounded-lg border border-gray-100"
+                        >
+                          <span className="text-sm text-gray-700">
+                            • {lesson.title}
+                          </span>
+                          
+                          {/* ── CODE WORD SYNC: Clickable manage button ── */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/teacher/courses/${id}/modules/${module._id || index}/lessons/${lesson._id || i}`);
+                            }}
+                            className="px-3 py-1 bg-purple-600 text-white text-xs font-bold rounded hover:bg-purple-700 transition"
+                          >
+                            Manage Content
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
 
-                <ul className="mt-2 list-disc ml-5">
-
-                  {module.lessons.map((lesson, i) => (
-
-                    <li key={i}>
-                      {lesson.title}
-                    </li>
-
-                  ))}
-
-                </ul>
-
-              </div>
-
-            ))
+                </div>
+              );
+            })
 
           )}
 
