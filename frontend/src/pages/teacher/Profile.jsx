@@ -39,8 +39,8 @@ console.log(err);
 
 }
 
-const initials=teacher.fullName
-?teacher.fullName.split(" ").map(x=>x[0]).join("").substring(0,2).toUpperCase()
+const initials=teacher.name
+?teacher.name.split(" ").map(x=>x[0]).join("").substring(0,2).toUpperCase()
 :"T";
 
 return(
@@ -63,7 +63,7 @@ return(
 
 <h1 className="text-2xl font-bold">
 
-{teacher.fullName}
+{teacher.nameName}
 
 </h1>
 
