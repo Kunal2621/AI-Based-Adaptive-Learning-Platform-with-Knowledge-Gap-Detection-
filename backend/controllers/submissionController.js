@@ -69,7 +69,7 @@ const submitQuiz = async (req, res) => {
 
       // Invoke Gemini to generate context-specific diagnosis
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: '',
         contents: prompt,
       });
 
