@@ -28,7 +28,8 @@ const {
   getTeacherStudents,
   getTeacherProfile,
   updateTeacherProfile,
-  getQuizPerformanceReport
+  getQuizPerformanceReport,
+  updateLessonContent
 } = require("../controllers/teacherController");
 
 
@@ -43,6 +44,10 @@ router
   .get(protect, getCourseById)
   .put(protect, updateCourse)
   .delete(protect, deleteCourse);
+
+// 🟢 FIX: was missing entirely - LessonContent.jsx's "Save Changes" button
+// PUTs to this exact path and always 404'd.
+router.put("/courses/:id/modules/:moduleId/lessons/:lessonId", protect, updateLessonContent);
 
 // Students
 router.get("/students", protect, getTeacherStudents);
