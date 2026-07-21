@@ -48,7 +48,7 @@ export default function EditProfile() {
       // Backend controller targets PUT /api/teacher/profile payload
       await API.put("/teacher/profile", form);
       alert("Faculty identity configuration states synchronized successfully!");
-      navigate("/teacher/profile");
+      window.location.href= "/teacher/profile";
     } catch (err) {
       console.error("Error committing validation profile metadata edits:", err);
       alert("Failed updating instructor profile registry context.");
