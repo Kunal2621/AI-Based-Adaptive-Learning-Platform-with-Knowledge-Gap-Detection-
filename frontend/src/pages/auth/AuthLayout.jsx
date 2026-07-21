@@ -1,16 +1,37 @@
 import React from "react";
-import LeftPanel from "./LeftPanel";
+import illustration from "../../assests/images/getStarted.png";
+import Navbar from "../../components/common/Navbar";
 
 const AuthLayout = ({ children }) => {
   return (
-    <div className="min-h-screen flex bg-gray-50">
+    <div className="min-h-screen bg-white">
 
-      {/* Left Side */}
-      <LeftPanel />
+      {/* Navbar */}
+      <Navbar />
 
-      {/* Right Side */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6">
-        {children}
+      {/* Content */}
+      <div className="grid min-h-[calc(100vh-80px)] lg:grid-cols-2">
+
+        {/* Left Illustration */}
+        <div className="hidden lg:flex items-center justify-center bg-white px-10">
+          <img
+            src={illustration}
+            alt="Knowledge Guru"
+            className="w-full max-w-3xl object-contain scale-125"
+          />
+        </div>
+
+        {/* Right Form */}
+        <div className="flex items-center justify-center px-6 py-10 bg-white">
+
+          <div className="w-full max-w-[520px] bg-white rounded-3xl shadow-xl border border-gray-100 p-10">
+
+            {children}
+
+          </div>
+
+        </div>
+
       </div>
 
     </div>

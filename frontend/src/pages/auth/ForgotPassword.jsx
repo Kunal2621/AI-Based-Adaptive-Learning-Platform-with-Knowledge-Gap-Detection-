@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Mail } from "lucide-react";
 import { Link } from "react-router-dom";
-import front from "../../assests/images/front.png"; // Fixed assets spelling
+import front from "../../assests/images/front.png";
 import AuthLayout from "./AuthLayout";
 
 const ForgotPassword = () => {
@@ -12,6 +12,7 @@ const ForgotPassword = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!email) {
       setError("Please enter your email address.");
       return;
@@ -22,8 +23,10 @@ const ForgotPassword = () => {
       setError("");
       setMessage("");
 
-      console.log("Sending link to:", email);
-      setMessage("Reset link has been sent to your email successfully!");
+      // TODO: Connect your backend API here
+      console.log("Reset password for:", email);
+
+      setMessage("Password reset link has been sent successfully.");
     } catch (err) {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -34,63 +37,97 @@ const ForgotPassword = () => {
   return (
     <AuthLayout>
 
-      <div className="w-[390px] bg-white p-[35px] rounded-[18px] shadow-[0_20px_50px_rgba(124,58,237,0.12)]">
-        
-        {/* Header Block */}
-        <div className="text-center mb-6">
-          <div className="w-[60px] h-[60px] mx-auto text-white rounded-xl flex items-center justify-center text-[22px] text-on-primary shadow-lg hover:shadow-indigo-500/20 transition-all transform hover:-translate-y-1 active:scale-95">
-            <img src={front} alt="logo" className="rounded-xl" />
-          </div>
-          <h2 className="mt-3 text-2xl font-semibold text-gray-800">Forgot Password?</h2>
-          <p className="text-[13px] text-gray-500">Enter your email to reset password</p>
-        </div>
+      {/* Logo */}
+      <div className="flex justify-center mb-5">
+        <img
+          src={front}
+          alt="Knowledge Guru"
+          className="w-16 h-16 rounded-xl shadow-md"
+        />
+      </div>
 
-        {error && (
-          <div className="p-2.5 text-xs font-medium bg-red-50 text-red-600 border border-red-100 rounded-lg mb-4 text-center">
-            {error}
-          </div>
-        )}
+      {/* Heading */}
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-bold text-gray-900">
+          Forgot Password?
+        </h1>
 
-        {message && (
-          <div className="p-2.5 text-xs font-medium bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-lg mb-4 text-center">
-            {message}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          {/* Email input field */}
-          <div className="mb-[18px]">
-            <label className="block text-[13px] mb-2 text-gray-700">Email Address</label>
-            <div className="flex items-center gap-2.5 border border-purple-200 px-3 py-3 rounded-lg">
-              <Mail size={18} className="text-gray-400 shrink-0" />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@company.com"
-                className="border-none outline-none w-full text-sm text-gray-700 placeholder-gray-400 bg-transparent"
-                disabled={isLoading}
-              />
-            </div>
-          </div>
-
-          {/* Submit Trigger Link */}
-          <button 
-            type="submit"
-            disabled={isLoading}
-            className="w-full py-[13px] bg-[#5b4bdb] hover:bg-[#4c3ec7] disabled:bg-purple-300 text-white rounded-lg font-semibold text-[15px] transition-colors duration-200"
-          >
-            {isLoading ? "Sending Link..." : "Send Reset Link"}
-          </button>
-        </form>
-
-        {/* Remember navigation loop link */}
-        <p className="text-center mt-6 text-[13px] text-gray-700">
-          Remember password?
-          <Link to="/login" className="text-purple-600 font-semibold ml-1 hover:underline">Login</Link>
+        <p className="mt-2 text-gray-500">
+          Enter your email to receive a password reset link.
         </p>
       </div>
-    
+
+      {/* Error */}
+      {error && (
+        <div className="mb-5 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+          {error}
+        </div>
+      )}
+
+      {/* Success */}
+      {message && (
+        <div className="mb-5 rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+          {message}
+        </div>
+      )}
+
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-5"
+      >
+
+        {/* Email */}
+        <div>
+
+          <label className="block mb-2 text-sm font-medium text-gray-700">
+            Email Address
+          </label>
+
+          <div className="flex items-center rounded-xl border border-gray-300 px-4 py-3 focus-within:border-purple-600 focus-within:ring-2 focus-within:ring-purple-200">
+
+            <Mail
+              size={18}
+              className="text-gray-400"
+            />
+
+            <input
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={isLoading}
+              className="ml-3 w-full bg-transparent outline-none"
+            />
+
+          </div>
+
+        </div>
+
+        {/* Button */}
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="w-full bg-primary hover:bg-primary-container text-on-primary px-6 py-2.5 rounded-xl font-label-md transition-all transform active:scale-95 shadow-sm"
+        >
+          {isLoading ? "Sending..." : "Send Reset Link"}
+        </button>
+
+      </form>
+
+      {/* Footer */}
+      <div className="mt-8 text-center text-sm text-gray-600">
+
+        Remember your password?
+
+        <Link
+          to="/login"
+          className="ml-2 font-semibold text-purple-600 hover:underline"
+        >
+          Login
+        </Link>
+
+      </div>
+
     </AuthLayout>
   );
 };

@@ -125,7 +125,28 @@ export default function CourseDetails() {
                       video: { icon: "play_circle",    color: "text-blue-500",  bg: "bg-blue-50" },
                       link:  { icon: "link",           color: "text-green-600", bg: "bg-green-50" },
                       ppt:   { icon: "slideshow",      color: "text-orange-500",bg: "bg-orange-50" },
+                      note:  { icon: "description",    color: "text-primary",   bg: "bg-primary/10" },
                     }[m.type] || { icon: "attachment", color: "text-outline", bg: "bg-surface-container" };
+
+                    // Lessons written by the teacher are plain text notes (no
+                    // file/URL), so render them inline instead of as a link.
+                    if (m.type === "note" || !m.url) {
+                      return (
+                        <div key={j} className="flex items-start gap-3 p-3 bg-surface-container rounded-xl">
+                          <div className={`w-8 h-8 rounded-lg ${cfg.bg} flex items-center justify-center flex-shrink-0`}>
+                            <span className={`material-symbols-outlined text-lg ${cfg.color}`}
+                              style={{ fontVariationSettings: '"FILL" 1' }}>{cfg.icon}</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium">{m.title}</p>
+                            {m.content && (
+                              <p className="text-xs text-on-surface-variant mt-1 whitespace-pre-wrap leading-relaxed">{m.content}</p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    }
+
                     return (
                       <a key={j} href={m.url} target="_blank" rel="noreferrer"
                         className="flex items-center gap-3 p-3 bg-surface-container rounded-xl hover:bg-primary/5 transition-colors group">

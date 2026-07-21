@@ -4,19 +4,20 @@ const dotenv = require('dotenv');
 const connectDB = require('./config/db.js');
 
 // Imported Routes Layers
-const authRoutes = require('./routes/authRoutes'); 
+const authRoutes = require('./routes/authRoutes');
 const studentRoutes = require('./routes/studentRoutes');
 const teacherRoutes = require('./routes/teacherRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const courseRoutes = require('./routes/courseRoutes');
+const studentQuizRoutes = require('./routes/studentQuizRoutes');
+const reportRoutes = require('./routes/reportRoutes');
+const recommendationRoutes = require('./routes/recommendationRoutes');
+const userRoutes = require('./routes/userRoutes');
+const chatbotRoutes = require('./routes/chatbotRoutes');
 
-// Load controllers and middleware for the proxy intercept handler
+// Load controller + middleware for the teacher's manual quiz-create endpoint
 const { interceptAndGenerateAIQuiz } = require('./controllers/teacherController');
 const { protect } = require('./middleware/authMiddleware');
-
-// Models Import for Compatibility
-const Course = require('./models/Course'); 
-const Quiz = require('./models/Quiz');
-const User = require('./models/User'); 
 
 // Load env variables
 dotenv.config();
@@ -30,94 +31,22 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🔥 INTERCEPTOR HOOK: Frontend Teammate ke CreateQuiz manual payload ko handle karega
+// Teacher's manual "Create Quiz" form posts here (kept as a singular /api/quiz
+// route so it never collides with the plural /api/quizzes student routes below)
 app.post('/api/quiz', protect, interceptAndGenerateAIQuiz);
-
-// =========================================================================
-// 🛠️ FIXES: Added Missing Compatibility Routes to Fix 404 Errors
-// =========================================================================
-
-// Handle GET /api/auth/me for frontend auth context state persistent
-app.get('/api/auth/me', protect, async (req, res) => {
-  try {
-    const user = await User.findById(req.user._id).select('-password');
-    if (!user) return res.status(404).json({ success: false, message: 'User profile not found' });
-    
-    res.status(200).json({ 
-      success: true, 
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role
-      } 
-    });
-  } catch (err) {
-    res.status(500).json({ success: false, message: 'Auth persistent loop crack.', error: err.message });
-  }
-});
-
-// 👉 NEW COMPATIBILITY ROUTE: Fix 404 /api/student/enrolled-courses
-app.get('/api/student/enrolled-courses', protect, async (req, res) => {
-  try {
-    // Abhi ke liye platform ke courses hi return kar rahe hain taaki blank na dikhe
-    const courses = await Course.find().populate('teacher', 'name');
-    res.status(200).json({ success: true, data: courses });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-// 👉 NEW COMPATIBILITY ROUTE: Fix 404 /api/courses (All active courses)
-app.get('/api/courses', protect, async (req, res) => {
-  try {
-    const courses = await Course.find().populate('teacher', 'name');
-    res.status(200).json({ success: true, data: courses });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-// 🛠️ Updated Single Course Fetching Route with Multi-Format Support
-app.get('/api/courses/:id', protect, async (req, res) => {
-  try {
-    const course = await Course.findById(req.params.id).populate('teacher', 'name');
-    if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
-    
-    // Dono formats bhej rahe hain taaki agar frontend res.data.data dhoonde ya res.data.course, dono chal jayein!
-    res.status(200).json({ 
-      success: true, 
-      data: course,
-      course: course,
-      modules: course.modules || [],
-      topicsCount: course.modules ? course.modules.length : 0
-    });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-// Quiz by Course ID Filtering Route (404 /api/quizzes Fix)
-app.get('/api/quizzes', protect, async (req, res) => {
-  try {
-    const { courseId } = req.query;
-    const query = courseId ? { courseId } : {};
-    const quizzes = await Quiz.find(query);
-    res.status(200).json({ success: true, data: quizzes });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-// =========================================================================
+app.use('/api/quiz', require('./routes/quizRoutes'));
 
 // Base Router Bindings
-app.use('/api/auth', authRoutes); 
+app.use('/api/auth', authRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/teacher', teacherRoutes);
 app.use('/api/admin', adminRoutes);
-
-// Fallback/Core dynamic quiz pipeline channel
-app.use('/api/quiz', require('./routes/quizRoutes'));
+app.use('/api/courses', courseRoutes);
+app.use('/api/quizzes', studentQuizRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/recommendations', recommendationRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/chatbot', chatbotRoutes);
 
 // Base Route Test
 app.get('/', (req, res) => {

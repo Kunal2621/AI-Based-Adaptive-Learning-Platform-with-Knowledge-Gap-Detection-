@@ -28,6 +28,18 @@ const userSchema = new mongoose.Schema(
       enum: ['Student', 'Teacher', 'Admin'], // Strict role checking
       default: 'Student',
     },
+    bio: {
+      type: String,
+      default: '',
+    },
+    phone: {
+      type: String,
+      default: '',
+    },
+    avatar: {
+      type: String,
+      default: '',
+    },
   },
   {
     timestamps: true, // Auto-generates createdAt and updatedAt fields

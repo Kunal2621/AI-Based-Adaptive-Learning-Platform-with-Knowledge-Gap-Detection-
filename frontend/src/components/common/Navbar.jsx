@@ -10,10 +10,15 @@ export default function Navbar() {
     <header className="sticky top-0 w-full z-50 bg-surface/90 backdrop-blur-xl border-b border-black/5">
       <nav className="max-w-container-max mx-auto px-3 py-1 flex justify-between items-center">
         <div className="flex items-center gap-1">
-          <span className="text-headline-md font-bold text-primary w-43 "><img  src={banner} alt="Knowledge guru logo" /></span>
+          <Link to="/">
+            <img src={banner} alt="Knowledge guru logo" className="w-43 cursor-pointer" />
+          </Link>
         </div>
 
         <div className="hidden md:flex items-center gap-8">
+          <Link to="/" className="text-label-md font-label-md text-on-surface-variant hover:text-primary transition-colors">
+            Home
+          </Link>
           <a className="text-label-md font-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">
             Courses
           </a>

@@ -1,10 +1,54 @@
-
 const mongoose = require('mongoose');
+
+const QuestionSchema = new mongoose.Schema({
+  questionText: {
+    type: String,
+    required: true
+  },
+  // Question "kind" — the student quiz UI renders differently per type.
+  // Defaults to 'mcq' since that's what the AI generators always produce today.
+  type: {
+    type: String,
+    enum: ['mcq', 'true_false', 'short_answer'],
+    default: 'mcq'
+  },
+  // Optional per-question topic, used for the topic-wise breakdown in results.
+  // Falls back to the parent quiz's `topic` field when not set.
+  topic: {
+    type: String
+  },
+  marks: {
+    type: Number,
+    default: 1
+  },
+  answerOptions: [
+    {
+      text: { type: String, required: true },
+      isCorrect: { type: Boolean, default: false },
+      rationale: { type: String } // Why it's correct/incorrect, provided by AI
+    }
+  ],
+  // Fallback correctness marker for generators that return an index instead
+  // of flagging isCorrect on the option itself.
+  correctAnswerIndex: {
+    type: Number
+  },
+  hint: {
+    type: String
+  },
+  difficulty: {
+    type: String,
+    default: 'Advanced'
+  }
+}, { _id: true });
 
 const QuizSchema = new mongoose.Schema({
   title: {
     type: String,
     required: true
+  },
+  description: {
+    type: String
   },
   topic: {
     type: String,
@@ -20,66 +64,10 @@ const QuizSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  questions: [
-    {
-      questionText: {
-        type: String,
-        required: true
-      },
-      answerOptions: [
-        {
-          text: { type: String, required: true },
-          rationale: { type: String } // Why it's correct/incorrect provided by AI
-        }
-      ],
-      hint: {
-        type: String
-      },
-      difficulty: {
-        type: String,
-        default: 'Advanced'
-      }
-    }
-  ]
+  timeLimit: {
+    type: Number // minutes, optional
+  },
+  questions: [QuestionSchema]
 }, { timestamps: true });
 
 module.exports = mongoose.model('Quiz', QuizSchema);
-
-
-const QuestionSchema = new mongoose.Schema({
-  questionText: {
-    type: String,
-    required: true,
-  },
-
-  answerOptions: [
-    {
-      text: {
-        type: String,
-        required: true,
-      },
-
-      isCorrect: {
-        type: Boolean,
-        required: true,
-      },
-
-      rationale: String,
-    },
-  ],
-
-  hint: {
-    type: String,
-    required: true,
-  },
-
-  difficulty: {
-    type: String,
-    enum: ["Easy", "Medium", "Hard"],
-    default: "Medium",
-  },
-});
-
-
-module.exports = mongoose.model("Quiz", QuizSchema);
-

@@ -1,4 +1,5 @@
 const Recommendation = require('../models/Recommendation');
+const Submission = require('../models/Submission');
 const ai = require('../config/geminiConfig');
 
 // @desc    Generate customized flashcards and study notes for a specific weak topic using Gemini AI
@@ -74,4 +75,35 @@ const generateStudyMaterials = async (req, res) => {
   }
 };
 
-module.exports = { generateStudyMaterials };
+// @desc    Build the student's AI recommendation roadmap from their past
+//          quiz attempts (one "session" per attempt that had gaps)
+// @route   GET /api/recommendations/my
+// @access  Private (Student)
+const getMyRecommendations = async (req, res) => {
+  try {
+    const submissions = await Submission.find({ student: req.user._id })
+      .populate('quiz', 'title topic')
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    const sessions = submissions
+      .filter((s) => s.geminiAnalysis?.gaps?.length > 0)
+      .map((s) => ({
+        generatedAt: s.createdAt,
+        weakTopics: (s.geminiAnalysis.gaps || []).map((g) => g.topic),
+        recommendations: (s.geminiAnalysis.gaps || []).map((g) => ({
+          topic: g.topic,
+          priority: g.severity || 'medium',
+          suggestion: g.description,
+          resources: g.recommendations || [],
+        })),
+        studyPlan: s.geminiAnalysis.encouragement || null,
+      }));
+
+    res.status(200).json({ success: true, data: sessions });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = { generateStudyMaterials, getMyRecommendations };
