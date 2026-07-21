@@ -99,7 +99,7 @@ export default function QuizCard({ quiz, questions = [], onStart, mode = "start"
 
   return (
     <div className="min-h-screen bg-surface flex items-center justify-center p-6">
-      <div className="max-w-md w-full glass-card rounded-2xl p-8 space-y-6 text-center">
+      <div className="flex-1 overflow-y-auto p-2 space-y-1">
 
         {/* Icon */}
         <div className="w-16 h-16 primary-gradient rounded-2xl flex items-center justify-center mx-auto shadow-lg">

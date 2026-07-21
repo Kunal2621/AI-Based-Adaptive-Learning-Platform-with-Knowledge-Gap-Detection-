@@ -6,6 +6,10 @@ const CourseSchema = new mongoose.Schema({
   category: { type: String, required: true },
   level: { type: String, enum: ['Beginner', 'Intermediate', 'Advanced'], default: 'Beginner' },
   teacher: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  // Students enrolled in this course — powers the student "My Courses" /
+  // enroll flow. Not present in the original schema, added for compatibility
+  // with the student frontend.
+  students: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   modules: [
     {
       moduleName: { type: String, required: true },

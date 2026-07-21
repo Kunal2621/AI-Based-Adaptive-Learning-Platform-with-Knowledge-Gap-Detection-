@@ -55,6 +55,31 @@ exports.registerUser = async (req, res) => {
   }
 };
 
+// @desc    Get the currently logged-in user's profile
+// @route   GET /api/auth/me
+// @access  Private
+exports.getMe = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select('-password');
+    if (!user) return res.status(404).json({ success: false, message: 'User profile not found' });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        _id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role,
+        bio: user.bio,
+        phone: user.phone,
+        avatar: user.avatar,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+  }
+};
+
 // @desc    Authenticate user & get token (Login)
 // @route   POST /api/auth/login
 // @access  Public

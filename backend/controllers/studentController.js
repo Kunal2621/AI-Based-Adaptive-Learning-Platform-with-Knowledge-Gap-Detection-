@@ -2,6 +2,25 @@ const Course = require('../models/Course');
 const Submission = require('../models/Submission');
 const Quiz = require('../models/Quiz');
 const ai = require('../config/geminiConfig'); // Gemini connection for smart adaptive feedback
+const { mapCourseForStudent, computeProgress } = require('./courseController');
+
+// Shared helper: derive notification-style alerts from the student's recent
+// low-scoring quiz attempts. Used by both the dashboard's "AI Alerts" panel
+// and the standalone /student/notifications endpoint so they always agree.
+const buildNotifications = async (studentId, limit = 10) => {
+  const weakSubmissions = await Submission.find({ student: studentId, percentage: { $lt: 60 } })
+    .populate('quiz', 'title topic')
+    .sort({ createdAt: -1 })
+    .limit(limit);
+
+  return weakSubmissions.map((sub) => ({
+    _id: sub._id,
+    title: `Knowledge gap in ${sub.quiz?.topic || 'a recent quiz'}`,
+    message: `You scored ${sub.percentage}% on "${sub.quiz?.title || 'a quiz'}". Review this topic to close the gap.`,
+    isRead: false,
+    createdAt: sub.createdAt,
+  }));
+};
 
 // @desc    Get live dynamic analytics and AI recommendations for Student Dashboard
 // @route   GET /api/student/dashboard
@@ -25,10 +44,10 @@ const getStudentDashboard = async (req, res) => {
     realSubmissions.forEach((sub, index) => {
       totalScoreSum += sub.percentage;
       
-      // Build real historical track map
+      // Build real historical track map (keys must match ProgressChart's dataKey props)
       quizHistory.push({
-        name: sub.quiz?.title || `Quiz ${index + 1}`,
-        score: sub.percentage
+        day: new Date(sub.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
+        value: sub.percentage
       });
 
       // Track weak categories/topics to filter knowledge gaps
@@ -74,12 +93,18 @@ const getStudentDashboard = async (req, res) => {
       avgScore: avgScore || 0,
       knowledgeGaps: knowledgeGapsCount,
       overallProgress: avgScore ? Math.min(avgScore + 5, 95) : 50, // Floating growth index
-      quizHistory: quizHistory.length > 0 ? quizHistory : [{ name: "Initial Scan", score: 0 }],
+      quizHistory: quizHistory.length > 0 ? quizHistory : [{ day: "Today", value: 0 }],
       topicScores
     };
 
-    // 3. Fetch real live courses available for student view context
-    const enrolledCourses = await Course.find().limit(3);
+    // 3. Fetch the student's actual enrolled courses (was returning ALL
+    //    platform courses before, in the wrong shape for the UI)
+    const enrolledCourseDocs = await Course.find({ students: studentId })
+      .populate('teacher', 'fullName email')
+      .limit(3);
+    const enrolledCourses = await Promise.all(
+      enrolledCourseDocs.map(async (c) => mapCourseForStudent(c, await computeProgress(c._id, studentId)))
+    );
 
     // Formulate real-time recent quiz collection arrays
     const recentQuizzes = realSubmissions.slice(-2).map(sub => ({
@@ -123,9 +148,7 @@ const getStudentDashboard = async (req, res) => {
       }
     }
 
-    const notifications = [
-      { _id: "n1", title: "Adaptive Diagnostic Engaged", message: `Hello ${studentName}, platform telemetry has synced your profiles successfully.` }
-    ];
+    const notifications = await buildNotifications(studentId);
 
     // Perfect structural encapsulation mapping teammate front-end
     res.status(200).json({
@@ -144,4 +167,27 @@ const getStudentDashboard = async (req, res) => {
   }
 };
 
-module.exports = { getStudentDashboard };
+// @desc    Get AI-generated alerts/notifications for the logged-in student
+//          (derived from recent low-scoring quiz attempts — there is no
+//          separate persisted Notification model yet)
+// @route   GET /api/student/notifications
+// @access  Private (Student)
+const getNotifications = async (req, res) => {
+  try {
+    const notifications = await buildNotifications(req.user._id);
+    res.status(200).json({ success: true, data: notifications });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Mark all notifications as read
+// @route   PUT /api/student/notifications/read-all
+// @access  Private (Student)
+const markAllNotificationsRead = async (req, res) => {
+  // No persisted Notification model exists yet — acknowledged as a no-op
+  // so the frontend action completes without erroring.
+  res.status(200).json({ success: true, message: 'All notifications marked as read' });
+};
+
+module.exports = { getStudentDashboard, getNotifications, markAllNotificationsRead };
