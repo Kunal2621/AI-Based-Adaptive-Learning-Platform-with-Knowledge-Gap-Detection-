@@ -1,6 +1,9 @@
+// MUST BE AT THE VERY TOP OF SERVER.JS
+const dotenv = require('dotenv');
+dotenv.config();
+
 const express = require('express');
 const cors = require('cors');
-const dotenv = require('dotenv');
 const connectDB = require('./config/db.js');
 
 // Imported Routes Layers
@@ -21,9 +24,6 @@ const teacherAnalyticsRoutes = require('./routes/teacherAnalyticsRoutes');
 const Course = require('./models/Course'); 
 const Quiz = require('./models/Quiz');
 const User = require('./models/User'); 
-
-// Load env variables
-dotenv.config();
 
 // Connect to Database
 connectDB();
@@ -50,7 +50,8 @@ app.get('/api/auth/me', protect, async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        isVerified: user.isVerified
       } 
     });
   } catch (err) {
@@ -117,15 +118,12 @@ app.get('/api/quiz', protect, async (req, res) => {
   }
 });
 
-// 🟢 🔥 DIRECT AI QUIZ GENERATION ROUTES (Interceptors Removed for Clean Gemini Execution)
+// 🟢 DIRECT AI QUIZ GENERATION ROUTES
 app.post('/api/quiz/generate', protect, generateAIQuiz);
 app.post('/api/quizzes/generate', protect, generateAIQuiz);
 app.post('/api/ai/generate-quiz', protect, generateAIQuiz);
 
-// 🟢 FIX: Notifications.jsx (teacher page) calls GET /api/notifications, but
-// no such route existed anywhere in the backend - the page always failed to
-// load. Built from real Submission data scoped to the logged-in teacher's
-// own courses, so it reflects actual student performance/knowledge gaps.
+// Notifications Route
 app.get('/api/notifications', protect, async (req, res) => {
   try {
     const Submission = require('./models/Submission');
@@ -179,7 +177,7 @@ app.get('/api/notifications', protect, async (req, res) => {
   }
 });
 
-// 🟢 Assign Quiz To Students Route
+// Assign Quiz To Students Route
 app.put('/api/quizzes/:id/assign', protect, async (req, res) => {
   try {
     const updatedQuiz = await Quiz.findByIdAndUpdate(
