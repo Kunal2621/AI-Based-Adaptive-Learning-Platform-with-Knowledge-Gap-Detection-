@@ -305,9 +305,9 @@ export default function LandingPage() {
                   >
                     Create Free Account
                   </Link>
-                  <button className="bg-primary-container text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-primary-container/80 transition-all border border-white/20">
+                  <Link to="/register" className="bg-primary-container text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-primary-container/80 transition-all border border-white/20">
                     Contact Sales
-                  </button>
+                  </Link>
                 </div>
               </div>
 
