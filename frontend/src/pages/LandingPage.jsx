@@ -73,10 +73,10 @@ export default function LandingPage() {
                   >
                     Get Started Free
                   </Link>
-                  <button className="flex items-center justify-center gap-2 bg-surface-container-low border border-outline-variant text-on-surface px-8 py-4 rounded-xl font-label-md text-lg hover:bg-surface-container-high transition-all">
+                  <Link to="/register" className="flex items-center justify-center gap-2 bg-surface-container-low border border-outline-variant text-on-surface px-8 py-4 rounded-xl font-label-md text-lg hover:bg-surface-container-high transition-all">
                     <span className="material-symbols-outlined">play_circle</span>
                     View Courses
-                  </button>
+                  </Link>
                 </div>
 
                 <div className="flex items-center gap-6 pt-6">
@@ -167,7 +167,7 @@ export default function LandingPage() {
           </div>
         </section>
         {/* Features Bento Grid */}
-        <section className="py-24 lg:py-32">
+        <section id="courses" className="py-24 lg:py-32 scroll-mt-24">
           <div className="max-w-container-max mx-auto px-4">
             <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
               <h2 className="text-headline-lg font-headline-lg">Everything you need to master any subject</h2>
@@ -189,9 +189,9 @@ export default function LandingPage() {
                   </p>
                 </div>
                 <div className="mt-auto pt-4">
-                  <a className="text-primary font-bold inline-flex items-center gap-1 group-hover:gap-2 transition-all" href="#">
+                  <Link to="/register" className="text-primary font-bold inline-flex items-center gap-1 group-hover:gap-2 transition-all" href="#">
                     Learn more <span className="material-symbols-outlined">arrow_forward</span>
-                  </a>
+                  </Link>
                 </div>
               </div>
 
@@ -207,9 +207,9 @@ export default function LandingPage() {
                   </p>
                 </div>
                 <div className="mt-auto pt-4">
-                  <a className="text-primary font-bold inline-flex items-center gap-1 group-hover:gap-2 transition-all" href="#">
+                  <Link to="/register" className="text-primary font-bold inline-flex items-center gap-1 group-hover:gap-2 transition-all" href="#">
                     Learn more <span className="material-symbols-outlined">arrow_forward</span>
-                  </a>
+                  </Link>
                 </div>
               </div>
 
@@ -225,9 +225,9 @@ export default function LandingPage() {
                   </p>
                 </div>
                 <div className="mt-auto pt-4">
-                  <a className="text-primary font-bold inline-flex items-center gap-1 group-hover:gap-2 transition-all" href="#">
+                  <Link to="/register" className="text-primary font-bold inline-flex items-center gap-1 group-hover:gap-2 transition-all" href="#">
                     Learn more <span className="material-symbols-outlined">arrow_forward</span>
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -235,7 +235,7 @@ export default function LandingPage() {
         </section>
 
         {/* Testimonials */}
-        <section className="py-24 bg-surface-container">
+        <section id="enterprise" className="py-24 bg-surface-container scroll-mt-24">
           <div className="max-w-container-max mx-auto px-4">
             <div className="grid lg:grid-cols-2 gap-16 items-center">
               <div className="space-y-6">
@@ -289,7 +289,7 @@ export default function LandingPage() {
         </section>
 
         {/* CTA Section */}
-        <section className="py-24">
+        <section id="pricing" className="py-24 scroll-mt-24">
           <div className="max-w-container-max mx-auto px-4">
             <div className="primary-gradient rounded-[40px] p-8 lg:p-20 text-center text-on-primary relative overflow-hidden">
               <div className="relative z-10 space-y-8">
