@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const { OAuth2Client } = require('google-auth-library');
+
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Helper function to generate JWT Token
@@ -12,13 +13,13 @@ const generateToken = (id) => {
   });
 };
 
-// Transporter Helper Function (Ensures .env is read dynamically when function runs)
+// Transporter Helper Function
 const getTransporter = () => {
   return nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: process.env.EMAIL_USER || 'sakk104527@gmail.com',
-      pass: process.env.EMAIL_PASS || 'usbdkubkosqqyavq',
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
     },
     tls: {
       rejectUnauthorized: false,
@@ -29,8 +30,7 @@ const getTransporter = () => {
 // Helper: Generate 6-Digit OTP
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
 
-// 1. REGISTER USER (Creates unverified account & Sends Email OTP)
-// @route   POST /api/auth/register
+// 1. REGISTER USER
 exports.registerUser = async (req, res) => {
   try {
     const { fullName, name, email, password, role } = req.body;
@@ -42,7 +42,6 @@ exports.registerUser = async (req, res) => {
 
     let user = await User.findOne({ email });
 
-    // Reject if user already exists AND is verified
     if (user && user.isVerified) {
       return res.status(400).json({ message: 'User already exists with this email. Please Login.' });
     }
@@ -50,10 +49,9 @@ exports.registerUser = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
     const otp = generateOTP();
-    const otpExpires = Date.now() + 10 * 60 * 1000; // Valid for 10 mins
+    const otpExpires = Date.now() + 10 * 60 * 1000;
 
     if (user && !user.isVerified) {
-      // Update unverified existing record
       user.name = displayName;
       user.fullName = displayName;
       user.password = hashedPassword;
@@ -62,7 +60,6 @@ exports.registerUser = async (req, res) => {
       user.otpExpires = otpExpires;
       await user.save();
     } else {
-      // Create new user record
       user = await User.create({
         name: displayName,
         fullName: displayName,
@@ -75,12 +72,10 @@ exports.registerUser = async (req, res) => {
       });
     }
 
-    // Dynamic Transporter Instance
     const transporter = getTransporter();
 
-    // Send Mail using User's Custom Registration Template
     await transporter.sendMail({
-      from: `"Knowledge Guru" <${process.env.EMAIL_USER || 'sakk104527@gmail.com'}>`,
+      from: `"Knowledge Guru" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: 'Verify Your Email – Knowledge Guru',
       html: `
@@ -126,8 +121,7 @@ exports.registerUser = async (req, res) => {
   }
 };
 
-// 2. VERIFY REGISTRATION OTP
-// @route   POST /api/auth/verify-otp
+// 2. VERIFY OTP
 exports.verifyRegisterOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
@@ -139,7 +133,6 @@ exports.verifyRegisterOTP = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    // String conversion + trim to handle type mismatch or spaces
     const inputOtp = String(otp).trim();
     const dbOtp = String(user.otp).trim();
 
@@ -147,7 +140,6 @@ exports.verifyRegisterOTP = async (req, res) => {
       return res.status(400).json({ message: 'Invalid or expired OTP' });
     }
 
-    // Mark user verified & clear OTP fields
     user.isVerified = true;
     user.otp = undefined;
     user.otpExpires = undefined;
@@ -165,8 +157,7 @@ exports.verifyRegisterOTP = async (req, res) => {
   }
 };
 
-// 3. LOGIN (Requires Verified User & Sends Login Alert Email)
-// @route   POST /api/auth/login
+// 3. LOGIN USER
 exports.loginUser = async (req, res) => {
   try {
     const { email, password, role } = req.body;
@@ -195,12 +186,11 @@ exports.loginUser = async (req, res) => {
 
     const activeName = user.fullName || user.name || "User";
 
-    // 📩 Send Login Confirmation Email
     try {
       const transporter = getTransporter();
 
       await transporter.sendMail({
-        from: `"Knowledge Guru" <${process.env.EMAIL_USER || 'sakk104527@gmail.com'}>`,
+        from: `"Knowledge Guru" <${process.env.EMAIL_USER}>`,
         to: user.email,
         subject: 'Login Successful – Knowledge Guru',
         html: `
@@ -230,7 +220,6 @@ exports.loginUser = async (req, res) => {
       console.error("Login Alert Email Error:", mailError.message);
     }
 
-    // Response send to Frontend
     res.status(200).json({
       _id: user._id,
       name: activeName,
@@ -244,38 +233,38 @@ exports.loginUser = async (req, res) => {
   }
 };
 
+// 4. GOOGLE AUTH LOGIN / REGISTER
 exports.googleAuth = async (req, res) => {
   try {
-    const { credential, role } = req.body; // Frontend se Google credential token aayega
+    const { credential, role } = req.body;
 
     if (!credential) {
       return res.status(400).json({ message: 'Google token is required' });
     }
 
-    // Google Token Verify Karein
     const ticket = await googleClient.verifyIdToken({
       idToken: credential,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
 
-    const { email, name, picture, sub } = ticket.getPayload();
+    const { email, name, sub } = ticket.getPayload();
 
-    // Database mein check karein ki user hai ya nahi
     let user = await User.findOne({ email });
 
     if (!user) {
-      // Naya User create karein Direct Verified status ke saath
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(sub, salt);
+
       user = await User.create({
         name,
         fullName: name,
         email,
-        password: sub, // Random string as placeholder password
+        password: hashedPassword,
         role: role || 'Student',
-        isVerified: true, // Google accounts are auto-verified
+        isVerified: true,
       });
     }
 
-    // Direct JWT Token Return Karein
     res.status(200).json({
       _id: user._id,
       name: user.name || user.fullName,
@@ -287,5 +276,93 @@ exports.googleAuth = async (req, res) => {
   } catch (error) {
     console.error("Google Auth Error:", error);
     res.status(500).json({ message: 'Google Authentication Failed', error: error.message });
+  }
+};
+
+// 5. FORGOT PASSWORD
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: 'Please provide an email address' });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'No account found with this email' });
+    }
+
+    const resetToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '10m' });
+    const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+
+    const transporter = getTransporter();
+
+    await transporter.sendMail({
+      from: `"Knowledge Guru" <${process.env.EMAIL_USER}>`,
+      to: user.email,
+      subject: 'Password Reset Request – Knowledge Guru',
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px; max-width: 500px; background-color: #ffffff;">
+          <h2 style="color: #6b21a8; margin-top: 0;">Reset Your Password</h2>
+          <p style="color: #333; font-size: 15px;">Hello <strong>${user.name || user.fullName || 'User'}</strong>,</p>
+          <p style="color: #555; font-size: 14px; line-height: 1.5;">We received a request to reset your Knowledge Guru password.</p>
+          
+          <div style="text-align: center; margin: 25px 0;">
+            <a href="${resetUrl}" style="background-color: #6b21a8; color: #ffffff; text-decoration: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; font-size: 14px; display: inline-block;">
+              Reset Password
+            </a>
+          </div>
+
+          <p style="color: #555; font-size: 13px;">This link is valid for <strong>10 minutes</strong> only.</p>
+          <p style="color: #777; font-size: 13px;">If you did not request a password reset, please ignore this email.</p>
+          
+          <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+          <p style="color: #777; font-size: 13px; margin: 0;">Best Regards,<br/><strong>Knowledge Guru Team</strong></p>
+        </div>
+      `,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Password reset link has been sent to your email.',
+    });
+  } catch (error) {
+    console.error("Forgot Password Error:", error);
+    res.status(500).json({ message: 'Error sending email', error: error.message });
+  }
+};
+
+// 6. RESET PASSWORD
+exports.resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({ message: 'Please enter a new password' });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(400).json({ message: 'Reset link is invalid or has expired' });
+    }
+
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(password, salt);
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Password reset successfully! You can now log in.',
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
   }
 };
