@@ -84,7 +84,7 @@ export default function Navbar() {
           </a>
 
           <Link
-            to="/register"
+            to="/login"
             className="bg-primary hover:bg-primary-container text-on-primary px-6 py-2.5 rounded-xl font-label-md transition-all transform active:scale-95 shadow-sm"
           >
             Get Started
@@ -134,7 +134,7 @@ export default function Navbar() {
             Pricing
           </a>
           <Link
-            to="/register"
+            to="/login"
             onClick={() => setMenuOpen(false)}
             className="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-label-md text-center"
           >
