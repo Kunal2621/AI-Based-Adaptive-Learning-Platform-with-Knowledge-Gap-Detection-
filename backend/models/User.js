@@ -28,6 +28,17 @@ const userSchema = new mongoose.Schema(
       enum: ['Student', 'Teacher', 'Admin'], // Strict role checking
       default: 'Student',
     },
+
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    otp: {
+      type: String,
+    },
+    otpExpires: {
+      type: Date,
+    },
   },
   {
     timestamps: true, // Auto-generates createdAt and updatedAt fields
