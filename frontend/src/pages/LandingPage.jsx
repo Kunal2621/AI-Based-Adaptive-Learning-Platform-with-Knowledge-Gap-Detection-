@@ -68,12 +68,12 @@ export default function LandingPage() {
 
                 <div className="flex flex-col sm:flex-row gap-4 pt-4">
                   <Link
-                    to="/register"
+                    to="/login"
                     className="primary-gradient text-on-primary px-8 py-4 rounded-xl font-label-md text-lg shadow-lg hover:shadow-indigo-500/20 transition-all transform hover:-translate-y-1 active:scale-95 text-center"
                   >
                     Get Started Free
                   </Link>
-                  <Link to="/register" className="flex items-center justify-center gap-2 bg-surface-container-low border border-outline-variant text-on-surface px-8 py-4 rounded-xl font-label-md text-lg hover:bg-surface-container-high transition-all">
+                  <Link to="/login" className="flex items-center justify-center gap-2 bg-surface-container-low border border-outline-variant text-on-surface px-8 py-4 rounded-xl font-label-md text-lg hover:bg-surface-container-high transition-all">
                     <span className="material-symbols-outlined">play_circle</span>
                     View Courses
                   </Link>
@@ -189,7 +189,7 @@ export default function LandingPage() {
                   </p>
                 </div>
                 <div className="mt-auto pt-4">
-                  <Link to="/register" className="text-primary font-bold inline-flex items-center gap-1 group-hover:gap-2 transition-all" href="#">
+                  <Link to="/login" className="text-primary font-bold inline-flex items-center gap-1 group-hover:gap-2 transition-all" href="#">
                     Learn more <span className="material-symbols-outlined">arrow_forward</span>
                   </Link>
                 </div>
@@ -207,7 +207,7 @@ export default function LandingPage() {
                   </p>
                 </div>
                 <div className="mt-auto pt-4">
-                  <Link to="/register" className="text-primary font-bold inline-flex items-center gap-1 group-hover:gap-2 transition-all" href="#">
+                  <Link to="/login" className="text-primary font-bold inline-flex items-center gap-1 group-hover:gap-2 transition-all" href="#">
                     Learn more <span className="material-symbols-outlined">arrow_forward</span>
                   </Link>
                 </div>
@@ -225,7 +225,7 @@ export default function LandingPage() {
                   </p>
                 </div>
                 <div className="mt-auto pt-4">
-                  <Link to="/register" className="text-primary font-bold inline-flex items-center gap-1 group-hover:gap-2 transition-all" href="#">
+                  <Link to="/login" className="text-primary font-bold inline-flex items-center gap-1 group-hover:gap-2 transition-all" href="#">
                     Learn more <span className="material-symbols-outlined">arrow_forward</span>
                   </Link>
                 </div>
@@ -300,12 +300,12 @@ export default function LandingPage() {
                 </p>
                 <div className="flex flex-col sm:flex-row justify-center gap-4">
                   <Link
-                    to="/register"
+                    to="/login"
                     className="bg-white text-primary px-10 py-4 rounded-xl font-bold text-lg hover:bg-surface-container-lowest transition-all transform hover:-translate-y-1 text-center"
                   >
                     Create Free Account
                   </Link>
-                  <Link to="/register" className="bg-primary-container text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-primary-container/80 transition-all border border-white/20">
+                  <Link to="/login" className="bg-primary-container text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-primary-container/80 transition-all border border-white/20">
                     Contact Sales
                   </Link>
                 </div>
