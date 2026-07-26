@@ -147,25 +147,48 @@ const createCourse = async (req, res) => {
     }
 
     const prompt = `
-      You are an elite academic curriculum designer and computer science professor.
-      Title: "${title}".
-      Scope: "${description || 'General Overview'}".
+      You are an expert teacher and curriculum designer. Create a complete educational course based on the given details.
+       Course Title: "${title}"
+       Category: "${category || "General Education"}".
+      Description: "${description || "Complete Learning material"}".
       Level: "${level || 'Beginner'}".
+
+      Create the course according to the selected category.
+      Do not assume that the course is only related to Computer Science.
+       The course can belong to any field such as Engineering, Electronics, IoT, Science, Mathematics, Business, Management, Programming, Medical, Arts, or any other subject.
+
+      Generate exactly 5 modules. Each module sould contain exactly 3 lessons.
+      For each lesson, write detailed but simple content in bullet points.
+
+      Each lesson should include:
+      1.Introduction to the topic
+      2. Definition
+      3.Detailed explanation of key concepts
+      4. Examples and applications
+      5. Summary and key takeaways
+      6. Practice Questions
+
+      Writing Rules:
+      1. Use simple student-friendly language.
+      2. Avoid using complex technical jargon.
+      3. Explain concept like a teacher explaining to a student.
+      4. Add examples where required.
+      5. Add formula only if topic needs them.
+      6. Add code examples only for programming related topics.
       
-      Generate a structured syllabus layout containing 5 logical modules, each with 2 core specific technical lessons.
-      Return ONLY a raw valid JSON array matching this exact schema:
+      Return only Valid JSON.
+      Do not add extra explanation before or after the JSON.
+
+      JSON FORMAT:
       [
-        {
-          "moduleName": "Module Heading String",
-          "lessons": [
-            { 
-              "title": "Lesson Title",
-              "content": "Detailed text explanation covering key concepts, subtopics, and guidelines."
-            }
-          ]
-        }
-      ]
-    `;
+      {
+        "moduleName": "Module Name",
+        "lessons": [
+          { 
+           "title": "Lesson Title", 
+           "content": "- Introduction point\n- Definition point\n- Explanation point" }
+      }
+      ]`;
 
     let generatedModules = [];
     try {
@@ -177,7 +200,7 @@ const createCourse = async (req, res) => {
       // Safe Extraction of raw response string
       let rawText = "";
       if (typeof response.text === 'function') {
-        rawText = response.text();
+        rawText = await response.text();
       } else if (response.text) {
         rawText = response.text;
       } else if (response.response && typeof response.response.text === 'function') {
@@ -186,8 +209,8 @@ const createCourse = async (req, res) => {
 
       // Regex Extraction to get pure JSON Array [...]
       const jsonMatch = rawText.match(/\[[\s\S]*\]/);
-      if (jsonMatch) {
-        rawText = jsonMatch[0];
+      if (!jsonMatch) {
+         throw new Error("Invalid AI response");
       } else {
         rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
       }
