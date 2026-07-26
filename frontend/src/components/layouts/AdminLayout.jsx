@@ -136,13 +136,8 @@ function AdminNavbar({ title, onMenuClick }) {
       </div>
 
       <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0">
-        <button
-          className="relative p-2 rounded-full hover:bg-surface-container text-on-surface-variant"
-          aria-label="Notifications"
-        >
-          <Bell size={20} />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full" />
-        </button>
+    
+          
         <button
           onClick={() => navigate("/admin/settings")}
           className="w-9 h-9 rounded-full bg-primary-fixed text-primary flex items-center justify-center font-bold text-label-md"
