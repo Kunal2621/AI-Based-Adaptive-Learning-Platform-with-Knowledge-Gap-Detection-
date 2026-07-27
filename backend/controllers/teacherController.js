@@ -421,8 +421,10 @@ const updateLessonContent = async (req, res) => {
 // @access  Private (Teacher/Admin)
 const interceptAndGenerateAIQuiz = async (req, res) => {
   try {
-    const { title, course, questions } = req.body;
-    const targetTopic = (questions && questions[0] && questions[0].question) ? questions[0].question : "Advanced Architecture Patterns";
+    const { title, courseId,topic,difficulty,numberOfQuestions} = req.body;
+    const targetTopic = topic || "General Knowledge";
+    const qCount = Number(numberOfQuestions) || 10;
+    const level = difficulty || "Medium";
 
     const prompt = `
       You are an elite automated examination software engine. 
@@ -488,7 +490,7 @@ const interceptAndGenerateAIQuiz = async (req, res) => {
     const finalQuiz = await Quiz.create({
       title: title || `${targetTopic} Quiz`,
       topic: targetTopic,
-      courseId: course,
+      courseId: courseId,
       creator: req.user._id,
       questions: parsedQuestions,
       isAssigned: false
