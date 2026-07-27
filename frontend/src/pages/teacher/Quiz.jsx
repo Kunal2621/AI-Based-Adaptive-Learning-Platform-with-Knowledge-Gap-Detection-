@@ -8,9 +8,11 @@ export default function Quiz() {
   const [title, setTitle] = useState("");
   const [course, setCourse] = useState("");
   const [topic, setTopic] = useState("");
+  const [difficulty, setDifficulty] = useState("Medium");
+  const [numberOfQuestions, setNumberOfQuestions] = useState(10);
 
   const [loading, setLoading] = useState(false);
-  
+
   // 🟢 State for Viewing Selected Quiz Modal & Assigning
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [assigning, setAssigning] = useState(false);
@@ -52,8 +54,8 @@ export default function Quiz() {
         title,
         topic,
         courseId: course,
-        difficulty: "Medium",
-        numberOfQuestions: 10
+        difficulty,
+        numberOfQuestions,
       };
 
       const res = await API.post("/quiz/generate", body);
@@ -69,10 +71,13 @@ export default function Quiz() {
       } else {
         fetchQuizzes();
       }
-
     } catch (err) {
       console.error("AI Generation fault:", err);
-      alert(err.response?.data?.message || err.message || "Failed to generate AI quiz.");
+      alert(
+        err.response?.data?.message ||
+          err.message ||
+          "Failed to generate AI quiz.",
+      );
     } finally {
       setLoading(false);
     }
@@ -85,9 +90,11 @@ export default function Quiz() {
     try {
       setAssigning(true);
       const res = await API.put(`/quizzes/${selectedQuiz._id}/assign`);
-      
-      alert("✅ Quiz has been successfully published and assigned to students!");
-      
+
+      alert(
+        "✅ Quiz has been successfully published and assigned to students!",
+      );
+
       // Update state locally
       setSelectedQuiz((prev) => ({ ...prev, isAssigned: true }));
       fetchQuizzes();
@@ -101,15 +108,18 @@ export default function Quiz() {
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto p-2">
-
       {/* AI Generator Form */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-6">Generate AI Technical Quiz</h2>
+        <h2 className="text-xl font-bold text-gray-800 mb-6">
+          Generate AI Quiz
+        </h2>
 
         <form onSubmit={generateAIQuiz} className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-gray-700">Quiz Title</label>
+              <label className="text-sm font-medium text-gray-700">
+                Quiz Title
+              </label>
               <input
                 type="text"
                 placeholder="Enter assignment or test heading"
@@ -120,7 +130,9 @@ export default function Quiz() {
             </div>
 
             <div>
-              <label className="text-sm font-medium text-gray-700">Select Tracked Course</label>
+              <label className="text-sm font-medium text-gray-700">
+                Select Tracked Course
+              </label>
               <select
                 className="w-full border border-gray-200 bg-white rounded-lg p-3 mt-1.5 text-sm focus:ring-2 focus:ring-purple-600 focus:outline-none"
                 value={course}
@@ -137,14 +149,52 @@ export default function Quiz() {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">Target Core Topic</label>
+            <label className="text-sm font-medium text-gray-700">
+              Target Core Topic
+            </label>
             <input
               type="text"
-              placeholder="Example: Variables, Data Types, React Hooks"
+              placeholder="Example: javascript, Physics, Marketing"
               className="w-full border border-gray-200 rounded-lg p-3 mt-1.5 text-sm focus:ring-2 focus:ring-purple-600 focus:outline-none"
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
             />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700">
+              Difficulty Level
+            </label>
+
+            <select
+              className="w-full border rounded-lg p-3 mt-1.5"
+              value={difficulty}
+              onChange={(e) => setDifficulty(e.target.value)}
+            >
+              <option value="Easy">Easy</option>
+
+              <option value="Medium">Medium</option>
+
+              <option value="Hard">Hard</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700">
+              Number of Questions
+            </label>
+
+            <select
+              className="w-full border rounded-lg p-3 mt-1.5"
+              value={numberOfQuestions}
+              onChange={(e) => setNumberOfQuestions(Number(e.target.value))}
+            >
+              <option value={5}>5 Questions</option>
+
+              <option value={10}>10 Questions</option>
+
+              <option value={15}>15 Questions</option>
+            </select>
           </div>
 
           <button
@@ -152,7 +202,9 @@ export default function Quiz() {
             disabled={loading}
             className="bg-purple-600 font-medium text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition disabled:bg-purple-300"
           >
-            {loading ? "Gemini Compiling Parameters..." : "Generate Evaluation Block"}
+            {loading
+              ? "Gemini Compiling Parameters..."
+              : "Generate Evaluation Block"}
           </button>
         </form>
       </div>
@@ -160,12 +212,18 @@ export default function Quiz() {
       {/* Generated Track Histories Table (Clickable Rows) */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="p-5 border-b border-gray-50 bg-gray-50/50 flex justify-between items-center">
-          <h2 className="text-lg font-bold text-gray-800">Generated Track Histories</h2>
-          <span className="text-xs text-purple-600 font-medium">💡 Click any row to preview questions & assign</span>
+          <h2 className="text-lg font-bold text-gray-800">
+            Generated Track Histories
+          </h2>
+          <span className="text-xs text-purple-600 font-medium">
+            💡 Click any row to preview questions & assign
+          </span>
         </div>
 
         {quizzes.length === 0 ? (
-          <p className="text-sm text-gray-400 p-8 italic text-center">No tests compile metadata tracks present.</p>
+          <p className="text-sm text-gray-400 p-8 italic text-center">
+            No tests compile metadata tracks present.
+          </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left text-gray-600">
@@ -179,20 +237,26 @@ export default function Quiz() {
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {quizzes.map((q) => (
-                  <tr 
-                    key={q._id} 
+                  <tr
+                    key={q._id}
                     onClick={() => setSelectedQuiz(q)} // 🔥 CLICK TO OPEN MODAL
                     className="hover:bg-purple-50/50 cursor-pointer transition"
                   >
                     <td className="p-4 font-medium text-gray-800">{q.title}</td>
-                    <td className="p-4 text-purple-600 font-semibold">{q.topic || "General"}</td>
-                    <td className="p-4 text-center font-bold text-gray-500">{q.questions?.length || 0}</td>
+                    <td className="p-4 text-purple-600 font-semibold">
+                      {q.topic || "General"}
+                    </td>
+                    <td className="p-4 text-center font-bold text-gray-500">
+                      {q.questions?.length || 0}
+                    </td>
                     <td className="p-4 text-center">
-                      <span className={`text-xs px-2.5 py-1 rounded-full font-bold ${
-                        q.isAssigned 
-                          ? "bg-green-100 text-green-700" 
-                          : "bg-amber-100 text-amber-700"
-                      }`}>
+                      <span
+                        className={`text-xs px-2.5 py-1 rounded-full font-bold ${
+                          q.isAssigned
+                            ? "bg-green-100 text-green-700"
+                            : "bg-amber-100 text-amber-700"
+                        }`}
+                      >
                         {q.isAssigned ? "Assigned" : "Draft (Click to Send)"}
                       </span>
                     </td>
@@ -208,16 +272,18 @@ export default function Quiz() {
       {selectedQuiz && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
-            
             {/* Modal Header */}
             <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-purple-50">
               <div>
-                <h3 className="text-lg font-bold text-gray-800">{selectedQuiz.title}</h3>
+                <h3 className="text-lg font-bold text-gray-800">
+                  {selectedQuiz.title}
+                </h3>
                 <p className="text-xs text-purple-600 font-medium mt-0.5">
-                  Topic: {selectedQuiz.topic} • {selectedQuiz.questions?.length || 0} Questions Total
+                  Topic: {selectedQuiz.topic} •{" "}
+                  {selectedQuiz.questions?.length || 0} Questions Total
                 </p>
               </div>
-              <button 
+              <button
                 onClick={() => setSelectedQuiz(null)}
                 className="text-gray-400 hover:text-gray-600 text-xl font-bold"
               >
@@ -229,18 +295,21 @@ export default function Quiz() {
             <div className="p-6 overflow-y-auto space-y-5 flex-1 text-sm">
               {selectedQuiz.questions && selectedQuiz.questions.length > 0 ? (
                 selectedQuiz.questions.map((q, idx) => (
-                  <div key={idx} className="border border-gray-100 p-4 rounded-xl bg-gray-50/50 space-y-3">
+                  <div
+                    key={idx}
+                    className="border border-gray-100 p-4 rounded-xl bg-gray-50/50 space-y-3"
+                  >
                     <p className="font-bold text-gray-800">
                       Q{idx + 1}. {q.questionText || q.question}
                     </p>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       {q.answerOptions?.map((opt, oIdx) => (
-                        <div 
-                          key={oIdx} 
+                        <div
+                          key={oIdx}
                           className={`p-2.5 rounded-lg border text-xs font-medium flex justify-between items-center ${
-                            opt.isCorrect 
-                              ? "bg-green-50 border-green-200 text-green-800 font-bold" 
+                            opt.isCorrect
+                              ? "bg-green-50 border-green-200 text-green-800 font-bold"
                               : "bg-white border-gray-200 text-gray-600"
                           }`}
                         >
@@ -258,7 +327,9 @@ export default function Quiz() {
                   </div>
                 ))
               ) : (
-                <p className="text-center text-gray-400 italic">No questions found in this quiz payload.</p>
+                <p className="text-center text-gray-400 italic">
+                  No questions found in this quiz payload.
+                </p>
               )}
             </div>
 
@@ -280,18 +351,16 @@ export default function Quiz() {
                     : "bg-purple-600 hover:bg-purple-700"
                 }`}
               >
-                {selectedQuiz.isAssigned 
-                  ? "✓ Assigned to Students" 
-                  : assigning 
-                  ? "Publishing..." 
-                  : "Publish & Send to Students 🚀"}
+                {selectedQuiz.isAssigned
+                  ? "✓ Assigned to Students"
+                  : assigning
+                    ? "Publishing..."
+                    : "Publish & Send to Students 🚀"}
               </button>
             </div>
-
           </div>
         </div>
       )}
-
     </div>
   );
 }
