@@ -1,4 +1,3 @@
-// Register.jsx
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, User, KeyRound } from "lucide-react";
@@ -23,18 +22,14 @@ const Register = () => {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // FIX: Persistent Check - Registered Email hamesha save rahega
+  // Auto Reset local flags on open
   useEffect(() => {
-    const isRegistered = localStorage.getItem("isRegistered");
-    if (isRegistered) {
-      navigate("/login");
-    }
-  }, [navigate]);
+    localStorage.removeItem("isRegistered");
+    localStorage.removeItem("registeredEmail");
+  }, []);
 
-  // Handle Form Submission -> Send OTP
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!fullName || !email || !password || !confirmPassword) {
       setError("Please fill in all fields.");
       return;
@@ -48,7 +43,6 @@ const Register = () => {
     try {
       setIsLoading(true);
       setError("");
-
       await authService.register(fullName, email, password, role);
       setIsOtpSent(true);
     } catch (err) {
@@ -58,20 +52,13 @@ const Register = () => {
     }
   };
 
-  // Verify OTP
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
     try {
       setIsLoading(true);
       setError("");
-
       await authService.verifyOtp(email, otp);
-
-      // Save user state in localstorage so they never register again
-      localStorage.setItem("isRegistered", "true");
-      localStorage.setItem("registeredEmail", email);
-
-      alert("Email Verified! Redirecting to Login.");
+      alert("Email Verified Successfully! Redirecting to Login.");
       navigate("/login");
     } catch (err) {
       setError(err.response?.data?.message || "Invalid OTP");
@@ -181,13 +168,12 @@ const Register = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-primary hover:bg-primary-container text-on-primary px-6 py-2.5 rounded-xl font-label-md transition-all"
+            className="w-full bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-xl font-medium transition-all"
           >
             {isLoading ? "Creating Account..." : "Create Account"}
           </button>
         </form>
       ) : (
-        /* OTP Verification Form */
         <form onSubmit={handleVerifyOtp} className="space-y-5">
           <div>
             <label className="block mb-2 text-sm font-medium text-gray-700">Enter OTP</label>
@@ -207,7 +193,7 @@ const Register = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-primary text-white py-3 rounded-xl font-medium"
+            className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-medium"
           >
             {isLoading ? "Verifying..." : "Verify OTP & Continue"}
           </button>
