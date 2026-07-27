@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+import banner from "../../assests/images/banner.png";
 
 const NAV = [
   { to: "/student/dashboard",       icon: "dashboard",      label: "Dashboard" },
@@ -34,10 +35,7 @@ export default function StudentSidebar({ isOpen, onClose }) {
         {/* Logo */}
         <div className="flex items-center justify-between px-5 py-5 border-b border-black/5">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 primary-gradient rounded-lg flex items-center justify-center">
-              <span className="material-symbols-outlined text-white text-sm">psychology</span>
-            </div>
-            <span className="font-bold text-on-surface text-sm">Knowledge Guru</span>
+            <img src={banner} alt="Knowledge Guru" className="h-10 w-auto object-contain"/>
           </div>
           <button onClick={onClose} className="lg:hidden text-on-surface-variant">
             <span className="material-symbols-outlined">close</span>
