@@ -274,7 +274,7 @@ export default function StudentLayout() {
               </span>
             </button>
 
-            <h1 className="text-base font-semibold text-on-surface">
+            <h1 class="text-headline-md font-bold truncate bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
               {pageTitle}
             </h1>
           </div>

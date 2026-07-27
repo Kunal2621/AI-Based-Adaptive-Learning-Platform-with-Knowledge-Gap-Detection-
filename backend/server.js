@@ -19,6 +19,7 @@ const { generateAIQuiz } = require('./controllers/aiController');
 // Analytics & Reports Routes
 const adminAnalyticsRoutes = require('./routes/adminAnalyticsRoutes');
 const teacherAnalyticsRoutes = require('./routes/teacherAnalyticsRoutes');
+const chatbotRoutes = require('./routes/chatbotRoutes');
 
 // Models Import for Compatibility
 const Course = require('./models/Course'); 
@@ -214,6 +215,9 @@ app.use('/api/quiz', require('./routes/quizRoutes'));
 // Analytics & Reports Endpoints Mount
 app.use('/api/admin', adminAnalyticsRoutes);   
 app.use('/api/teacher', teacherAnalyticsRoutes); 
+
+// Chatbot Endpoints Mount
+app.use('/api/chatbot', chatbotRoutes);
 
 // Base Route Test
 app.get('/', (req, res) => {
