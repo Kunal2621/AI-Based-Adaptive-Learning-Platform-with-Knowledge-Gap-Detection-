@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import banner from "../../assests/images/banner.png";
+import banner from "../../assests/images/banner.svg";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
-  // 1. Top par scroll karne ke liye (Logo & Home link)
   const handleScrollToTop = (e) => {
     e.preventDefault();
     setMenuOpen(false);
@@ -22,7 +21,6 @@ export default function Navbar() {
     }
   };
 
-  // 2. Sections par scroll karne ke liye (Courses, Enterprise, Pricing)
   const handleScroll = (e, targetId) => {
     e.preventDefault();
     setMenuOpen(false);
@@ -39,22 +37,26 @@ export default function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 w-full z-50 bg-surface/90 backdrop-blur-xl border-b border-black/5">
-      <nav className="max-w-container-max mx-auto px-3 py-1 flex justify-between items-center">
-        {/* LOGO: Click karne par top par jayega */}
-        <div className="flex items-center gap-1">
-          <a href="/" onClick={handleScrollToTop}>
-            <img src={banner} alt="Knowledge guru logo" className="w-43 cursor-pointer" />
+    <header className="sticky top-0 z-50 bg-surface/90 backdrop-blur-xl border-b border-black/5">
+      <nav className="w-full max-w-[1400px] mx-auto h-20 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+        
+        {/* Left Corner Logo */}
+        <div className="flex items-center">
+          <a href="/" onClick={handleScrollToTop} className="flex items-center">
+            <img 
+              src={banner} 
+              alt="knowledge.guru logo" 
+              className="h-8 sm:h-9 md:h-10 w-auto object-contain cursor-pointer" 
+            />
           </a>
         </div>
 
-        {/* Desktop Menu */}
-        <div className="hidden md:flex items-center gap-8">
-          {/* HOME: Click karne par top par jayega */}
+        {/* Desktop Links (GAP INCREASED HERE) */}
+        <div className="hidden md:flex items-center gap-10 lg:gap-14">
           <a
             href="/"
             onClick={handleScrollToTop}
-            className="text-label-md font-label-md text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
+            className="text-base font-medium tracking-wide text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
           >
             Home
           </a>
@@ -62,7 +64,7 @@ export default function Navbar() {
           <a
             href="#courses"
             onClick={(e) => handleScroll(e, "courses")}
-            className="text-label-md font-label-md text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
+            className="text-base font-medium tracking-wide text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
           >
             Courses
           </a>
@@ -70,7 +72,7 @@ export default function Navbar() {
           <a
             href="#enterprise"
             onClick={(e) => handleScroll(e, "enterprise")}
-            className="text-label-md font-label-md text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
+            className="text-base font-medium tracking-wide text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
           >
             Enterprise
           </a>
@@ -78,14 +80,14 @@ export default function Navbar() {
           <a
             href="#pricing"
             onClick={(e) => handleScroll(e, "pricing")}
-            className="text-label-md font-label-md text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
+            className="text-base font-medium tracking-wide text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
           >
             Pricing
           </a>
 
           <Link
             to="/login"
-            className="bg-primary hover:bg-primary-container text-on-primary px-6 py-2.5 rounded-xl font-label-md transition-all transform active:scale-95 shadow-sm"
+            className="ml-2 bg-primary hover:bg-primary-container text-on-primary px-6 py-2.5 rounded-xl font-medium transition-all active:scale-95 shadow-sm"
           >
             Get Started
           </Link>
@@ -104,39 +106,39 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {menuOpen && (
-        <div className="md:hidden px-4 pb-4 flex flex-col gap-4 bg-surface border-t border-black/5">
+        <div className="md:hidden px-6 py-6 flex flex-col gap-5 bg-surface border-t border-black/5">
           <a
             href="/"
             onClick={handleScrollToTop}
-            className="text-label-md text-on-surface-variant hover:text-primary transition-colors"
+            className="text-base font-medium text-on-surface-variant hover:text-primary transition-colors"
           >
             Home
           </a>
           <a
             href="#courses"
             onClick={(e) => handleScroll(e, "courses")}
-            className="text-label-md text-on-surface-variant hover:text-primary transition-colors"
+            className="text-base font-medium text-on-surface-variant hover:text-primary transition-colors"
           >
             Courses
           </a>
           <a
             href="#enterprise"
             onClick={(e) => handleScroll(e, "enterprise")}
-            className="text-label-md text-on-surface-variant hover:text-primary transition-colors"
+            className="text-base font-medium text-on-surface-variant hover:text-primary transition-colors"
           >
             Enterprise
           </a>
           <a
             href="#pricing"
             onClick={(e) => handleScroll(e, "pricing")}
-            className="text-label-md text-on-surface-variant hover:text-primary transition-colors"
+            className="text-base font-medium text-on-surface-variant hover:text-primary transition-colors"
           >
             Pricing
           </a>
           <Link
             to="/login"
             onClick={() => setMenuOpen(false)}
-            className="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-label-md text-center"
+            className="bg-primary text-on-primary px-6 py-3 rounded-xl font-medium text-center mt-2"
           >
             Get Started
           </Link>
