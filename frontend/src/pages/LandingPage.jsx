@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import Navbar from "../components/common/Navbar";
 import Footer from "../components/common/Footer";
 import brain from "../assests/images/brain.jpg";
+
 export default function LandingPage() {
   console.log(brain);
   const containerRef = useRef(null);
