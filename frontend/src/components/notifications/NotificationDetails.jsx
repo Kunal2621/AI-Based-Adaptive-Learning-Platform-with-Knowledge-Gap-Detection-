@@ -1,5 +1,5 @@
 import { Mail } from "lucide-react";
-import PriorityBadge from "./PriorityBadge";
+import PriorityBadge from "./Prioritybadge";
 import { getNotificationIcon } from "../../utils/notificationIcons";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -35,8 +35,9 @@ export default function NotificationDetails({ notification }) {
             <h2 className="text-2xl font-bold">
               {notification.student?.name}
             </h2>
+            
 
-            <PriorityBadge priority={notification.priority} />
+            <Prioritybadge priority={notification.priority} />
 
           </div>
           {notification.course && (
