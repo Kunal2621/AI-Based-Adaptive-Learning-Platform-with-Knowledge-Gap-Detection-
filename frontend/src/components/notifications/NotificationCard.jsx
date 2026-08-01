@@ -1,5 +1,5 @@
 import { Circle } from "lucide-react";
-import PriorityBadge from "./PriorityBadge";
+import PriorityBadge from "./Prioritybadge";
 import { getNotificationIcon } from "../../utils/notificationIcons";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -11,6 +11,7 @@ export default function NotificationCard({
   selected,
   onSelect,
 }) {
+  
   return (
     <div
       onClick={() => onSelect(notification)}
@@ -34,7 +35,7 @@ export default function NotificationCard({
               {notification.student?.name}
             </h3>
 
-            <PriorityBadge priority={notification.priority} />
+            <Prioritybadge priority={notification.priority} />
 
           </div>
 
