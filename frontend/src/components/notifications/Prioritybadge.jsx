@@ -1,4 +1,4 @@
-export default function PriorityBadge({ priority }) {
+export default function Prioritybadge({ priority }) {
   const styles = {
     High: {
       bg: "bg-red-100",
@@ -43,3 +43,4 @@ export default function PriorityBadge({ priority }) {
     </span>
   );
 }
+
