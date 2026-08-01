@@ -10,6 +10,7 @@ export default function Prioritybadge({ priority }) {
       text: "text-yellow-700",
       border: "border-yellow-200",
     },
+    
     Low: {
       bg: "bg-green-100",
       text: "text-green-700",
