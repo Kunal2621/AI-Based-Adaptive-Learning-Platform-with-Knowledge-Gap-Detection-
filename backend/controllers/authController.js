@@ -13,17 +13,20 @@ const generateToken = (id) => {
   });
 };
 
-// Transporter Helper Function
+// Transporter Helper Function (Optimized for Render Deployment)
 const getTransporter = () => {
   return nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465, // SSL port works reliably on Render
+    secure: true,
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
     tls: {
-      rejectUnauthorized: false,
+      rejectUnauthorized: false, // Prevents certificate blocking
     },
+    connectionTimeout: 10000, // 10-second timeout
   });
 };
 
@@ -72,51 +75,62 @@ exports.registerUser = async (req, res) => {
       });
     }
 
-    const transporter = getTransporter();
+    // Attempt to send OTP email with safe try-catch
+    try {
+      const transporter = getTransporter();
 
-    await transporter.sendMail({
-      from: `"Knowledge Guru" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: 'Verify Your Email – Knowledge Guru',
-      html: `
-        <div style="font-family: Arial, sans-serif; padding: 25px; border: 1px solid #e0e0e0; border-radius: 12px; max-width: 520px; background-color: #ffffff; color: #333333;">
-          <h2 style="color: #6b21a8; margin-top: 0; font-size: 22px;">Verify Your Email</h2>
-          <p style="font-size: 15px; margin-bottom: 5px;">Hello <strong>${displayName}</strong>,</p>
-          <p style="font-size: 15px; margin-top: 0;">Welcome to Knowledge Guru!</p>
-          
-          <p style="font-size: 14px; color: #555555; margin-top: 15px;">Use the verification code below to complete your request:</p>
-          
-          <div style="text-align: center; margin: 25px 0;">
-            <span style="background-color: #f3e8ff; color: #6b21a8; font-size: 28px; font-weight: bold; letter-spacing: 6px; padding: 12px 28px; border-radius: 8px; border: 1px dashed #6b21a8; display: inline-block;">
-              ${otp}
-            </span>
+      await transporter.sendMail({
+        from: `"Knowledge Guru" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: 'Verify Your Email – Knowledge Guru',
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 25px; border: 1px solid #e0e0e0; border-radius: 12px; max-width: 520px; background-color: #ffffff; color: #333333;">
+            <h2 style="color: #6b21a8; margin-top: 0; font-size: 22px;">Verify Your Email</h2>
+            <p style="font-size: 15px; margin-bottom: 5px;">Hello <strong>${displayName}</strong>,</p>
+            <p style="font-size: 15px; margin-top: 0;">Welcome to Knowledge Guru!</p>
+            
+            <p style="font-size: 14px; color: #555555; margin-top: 15px;">Use the verification code below to complete your request:</p>
+            
+            <div style="text-align: center; margin: 25px 0;">
+              <span style="background-color: #f3e8ff; color: #6b21a8; font-size: 28px; font-weight: bold; letter-spacing: 6px; padding: 12px 28px; border-radius: 8px; border: 1px dashed #6b21a8; display: inline-block;">
+                ${otp}
+              </span>
+            </div>
+
+            <p style="font-size: 14px; color: #444444; font-weight: 500;">This OTP is valid for 10 minutes.</p>
+            
+            <div style="background-color: #fff8f0; padding: 12px 15px; border-left: 4px solid #f97316; border-radius: 4px; margin: 20px 0;">
+              <p style="font-size: 13px; color: #c2410c; margin: 0; line-height: 1.4;">
+                <strong>Security Reminder:</strong> Never share this OTP with anyone. Knowledge Guru will never ask for your OTP.
+              </p>
+            </div>
+
+            <p style="font-size: 13px; color: #666666; margin-bottom: 20px;">If you didn't request this code, you can safely ignore this email.</p>
+            <p style="font-size: 14px; color: #333333;">Thank you for choosing Knowledge Guru.</p>
+
+            <hr style="border: none; border-top: 1px solid #eeeeee; margin: 20px 0;" />
+            
+            <p style="font-size: 13px; color: #555555; margin: 0;">Best Regards,<br/><strong>Knowledge Guru Team</strong></p>
+            <p style="font-size: 13px; color: #6b21a8; margin-top: 5px;">📧 <a href="mailto:support@knowledgeguru.com" style="color: #6b21a8; text-decoration: none;">support@knowledgeguru.com</a></p>
           </div>
+        `,
+      });
 
-          <p style="font-size: 14px; color: #444444; font-weight: 500;">This OTP is valid for 10 minutes.</p>
-          
-          <div style="background-color: #fff8f0; padding: 12px 15px; border-left: 4px solid #f97316; border-radius: 4px; margin: 20px 0;">
-            <p style="font-size: 13px; color: #c2410c; margin: 0; line-height: 1.4;">
-              <strong>Security Reminder:</strong> Never share this OTP with anyone. Knowledge Guru will never ask for your OTP.
-            </p>
-          </div>
+      return res.status(200).json({
+        success: true,
+        message: 'OTP sent to email. Please verify to complete registration.',
+      });
 
-          <p style="font-size: 13px; color: #666666; margin-bottom: 20px;">If you didn't request this code, you can safely ignore this email.</p>
-          <p style="font-size: 14px; color: #333333;">Thank you for choosing Knowledge Guru.</p>
+    } catch (mailError) {
+      console.error("❌ Registration Mail Error:", mailError);
+      return res.status(500).json({ 
+        message: 'Registration created, but failed to send OTP email. Please verify server email credentials.',
+        error: mailError.message 
+      });
+    }
 
-          <hr style="border: none; border-top: 1px solid #eeeeee; margin: 20px 0;" />
-          
-          <p style="font-size: 13px; color: #555555; margin: 0;">Best Regards,<br/><strong>Knowledge Guru Team</strong></p>
-          <p style="font-size: 13px; color: #6b21a8; margin-top: 5px;">📧 <a href="mailto:support@knowledgeguru.com" style="color: #6b21a8; text-decoration: none;">support@knowledgeguru.com</a></p>
-        </div>
-      `,
-    });
-
-    res.status(200).json({
-      success: true,
-      message: 'OTP sent to email. Please verify to complete registration.',
-    });
   } catch (error) {
-    console.error("Register Error / Mail Error:", error);
+    console.error("❌ Register User Error:", error);
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
 };
@@ -186,6 +200,7 @@ exports.loginUser = async (req, res) => {
 
     const activeName = user.fullName || user.name || "User";
 
+    // Non-blocking Login Alert Email
     try {
       const transporter = getTransporter();
 
@@ -217,7 +232,7 @@ exports.loginUser = async (req, res) => {
         `,
       });
     } catch (mailError) {
-      console.error("Login Alert Email Error:", mailError.message);
+      console.error("⚠️ Login Alert Email Failed:", mailError.message);
     }
 
     res.status(200).json({
@@ -293,41 +308,54 @@ exports.forgotPassword = async (req, res) => {
     }
 
     const resetToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '10m' });
-    const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+    
+    // Dynamic Base URL based on Environment Variables
+    const clientBaseUrl = process.env.CLIENT_URI || 'https://knowledgeguru-swart.vercel.app';
+    const resetUrl = `${clientBaseUrl}/reset-password/${resetToken}`;
 
-    const transporter = getTransporter();
+    try {
+      const transporter = getTransporter();
 
-    await transporter.sendMail({
-      from: `"Knowledge Guru" <${process.env.EMAIL_USER}>`,
-      to: user.email,
-      subject: 'Password Reset Request – Knowledge Guru',
-      html: `
-        <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px; max-width: 500px; background-color: #ffffff;">
-          <h2 style="color: #6b21a8; margin-top: 0;">Reset Your Password</h2>
-          <p style="color: #333; font-size: 15px;">Hello <strong>${user.name || user.fullName || 'User'}</strong>,</p>
-          <p style="color: #555; font-size: 14px; line-height: 1.5;">We received a request to reset your Knowledge Guru password.</p>
-          
-          <div style="text-align: center; margin: 25px 0;">
-            <a href="${resetUrl}" style="background-color: #6b21a8; color: #ffffff; text-decoration: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; font-size: 14px; display: inline-block;">
-              Reset Password
-            </a>
+      await transporter.sendMail({
+        from: `"Knowledge Guru" <${process.env.EMAIL_USER}>`,
+        to: user.email,
+        subject: 'Password Reset Request – Knowledge Guru',
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px; max-width: 500px; background-color: #ffffff;">
+            <h2 style="color: #6b21a8; margin-top: 0;">Reset Your Password</h2>
+            <p style="color: #333; font-size: 15px;">Hello <strong>${user.name || user.fullName || 'User'}</strong>,</p>
+            <p style="color: #555; font-size: 14px; line-height: 1.5;">We received a request to reset your Knowledge Guru password.</p>
+            
+            <div style="text-align: center; margin: 25px 0;">
+              <a href="${resetUrl}" style="background-color: #6b21a8; color: #ffffff; text-decoration: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; font-size: 14px; display: inline-block;">
+                Reset Password
+              </a>
+            </div>
+
+            <p style="color: #555; font-size: 13px;">This link is valid for <strong>10 minutes</strong> only.</p>
+            <p style="color: #777; font-size: 13px;">If you did not request a password reset, please ignore this email.</p>
+            
+            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+            <p style="color: #777; font-size: 13px; margin: 0;">Best Regards,<br/><strong>Knowledge Guru Team</strong></p>
           </div>
+        `,
+      });
 
-          <p style="color: #555; font-size: 13px;">This link is valid for <strong>10 minutes</strong> only.</p>
-          <p style="color: #777; font-size: 13px;">If you did not request a password reset, please ignore this email.</p>
-          
-          <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
-          <p style="color: #777; font-size: 13px; margin: 0;">Best Regards,<br/><strong>Knowledge Guru Team</strong></p>
-        </div>
-      `,
-    });
+      return res.status(200).json({
+        success: true,
+        message: 'Password reset link has been sent to your email.',
+      });
 
-    res.status(200).json({
-      success: true,
-      message: 'Password reset link has been sent to your email.',
-    });
+    } catch (mailError) {
+      console.error("❌ Forgot Password Mail Error:", mailError);
+      return res.status(500).json({ 
+        message: 'Failed to send password reset email. Please check server email setup.', 
+        error: mailError.message 
+      });
+    }
+
   } catch (error) {
-    console.error("Forgot Password Error:", error);
+    console.error("Forgot Password Controller Error:", error);
     res.status(500).json({ message: 'Error sending email', error: error.message });
   }
 };
