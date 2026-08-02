@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, User, KeyRound } from "lucide-react";
 import authService from "../../services/authService";
-import front from "../../assests/images/front.png";
+import front from "../../assests/images/banner.svg";
 import AuthLayout from "./AuthLayout";
 
 const Register = () => {
