@@ -134,6 +134,7 @@ const getTeacherAnalytics = async (req, res) => {
 // @desc    Create a new course with AI-Generated Syllabus Modules
 // @route   POST /api/teacher/courses
 // @access  Private (Teacher/Admin only)
+// 🟢 FIXED & CRASH-PROOF COURSE CREATION
 const createCourse = async (req, res) => {
   try {
     const { title, description, category, level } = req.body;
@@ -148,46 +149,32 @@ const createCourse = async (req, res) => {
 
     const prompt = `
       You are an expert teacher and curriculum designer. Create a complete educational course based on the given details.
-       Course Title: "${title}"
-       Category: "${category || "General Education"}".
+      Course Title: "${title}"
+      Category: "${category || "General Education"}".
       Description: "${description || "Complete Learning material"}".
       Level: "${level || 'Beginner'}".
 
-      Create the course according to the selected category.
-      Do not assume that the course is only related to Computer Science.
-       The course can belong to any field such as Engineering, Electronics, IoT, Science, Mathematics, Business, Management, Programming, Medical, Arts, or any other subject.
-
-      Generate exactly 5 modules. Each module sould contain exactly 3 lessons.
-      For each lesson, write detailed but simple content in bullet points.
-
-      Each lesson should include:
-      1.Introduction to the topic
-      2. Definition
-      3.Detailed explanation of key concepts
-      4. Examples and applications
-      5. Summary and key takeaways
-      6. Practice Questions
-
-      Writing Rules:
-      1. Use simple student-friendly language.
-      2. Avoid using complex technical jargon.
-      3. Explain concept like a teacher explaining to a student.
-      4. Add examples where required.
-      5. Add formula only if topic needs them.
-      6. Add code examples only for programming related topics.
+      Generate exactly 5 modules. Each module should contain exactly 3 lessons.
       
-      Return only Valid JSON.
-      Do not add extra explanation before or after the JSON.
+      For each lesson, write detailed, highly rich educational content in point-by-point markdown format including:
+      1. Introduction & Definition
+      2. Key Concepts explained in detail
+      3. Real-world Examples & Applications
+      4. Key Takeaways & Practice Questions
+
+      Return ONLY a valid raw JSON Array. Do not wrap in extra commentary or text.
 
       JSON FORMAT:
       [
-      {
-        "moduleName": "Module Name",
-        "lessons": [
-          { 
-           "title": "Lesson Title", 
-           "content": "- Introduction point\n- Definition point\n- Explanation point" }
-      }
+        {
+          "moduleName": "Module Name",
+          "lessons": [
+            { 
+              "title": "Lesson Title", 
+              "content": "### Introduction\\n- Explanation point 1\\n- Explanation point 2\\n\\n### Key Concepts\\n- Detail point 1\\n- Detail point 2" 
+            }
+          ]
+        }
       ]`;
 
     let generatedModules = [];
@@ -197,7 +184,7 @@ const createCourse = async (req, res) => {
         contents: prompt,
       });
 
-      // Safe Extraction of raw response string
+      // Safe Extraction
       let rawText = "";
       if (typeof response.text === 'function') {
         rawText = await response.text();
@@ -207,38 +194,37 @@ const createCourse = async (req, res) => {
         rawText = response.response.text();
       }
 
-      // Regex Extraction to get pure JSON Array [...]
+      // 🟢 FIX: Extract pure JSON string cleanly
       const jsonMatch = rawText.match(/\[[\s\S]*\]/);
-      if (!jsonMatch) {
-         throw new Error("Invalid AI response");
+      if (jsonMatch) {
+        generatedModules = JSON.parse(jsonMatch[0]); // JSON match array parsed directly!
       } else {
-        rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+        const cleanedText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+        generatedModules = JSON.parse(cleanedText);
       }
-
-      generatedModules = JSON.parse(rawText);
 
     } catch (aiError) {
       console.error("Gemini Syllabus AI Warning (Using Fallback):", aiError.message);
-      // Fallback Modules grid so course creation NEVER fails
+      // Fallback Modules grid
       generatedModules = [
         {
           moduleName: `Module 1: Fundamentals of ${title}`,
           lessons: [
-            { title: "Course Introduction & Setup", content: `Welcome to ${title}. Overview of core architectural concepts.` },
-            { title: "Primary Concepts & Environment", content: "Understanding system environment and basic syntax rules." }
+            { title: "Course Introduction & Setup", content: `Welcome to ${title}.\n\n### Overview\n- Core architectural concepts of ${title}.\n- Getting started with the basics.\n\n### Practice\n1. What is the main goal of ${title}?` },
+            { title: "Primary Concepts & Environment", content: "### Basic Principles\n- Understanding system environment.\n- Basic syntax and fundamentals." }
           ]
         },
         {
           moduleName: "Module 2: Applied Engineering",
           lessons: [
-            { title: "Practical Implementation", content: "Step-by-step hands-on implementation and core workflows." },
-            { title: "Best Practices & Optimization", content: "Performance optimization guidelines and standard design patterns." }
+            { title: "Practical Implementation", content: "### Hands-on\n- Step-by-step implementation.\n- Core workflows." },
+            { title: "Best Practices & Optimization", content: "### Guidelines\n- Performance optimization.\n- Standard design patterns." }
           ]
         }
       ];
     }
 
-    // Save directly to MongoDB Atlas
+    // Save to MongoDB Atlas
     const course = await Course.create({
       title,
       description: description || title,
