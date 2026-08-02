@@ -224,6 +224,7 @@ const createCourse = async (req, res) => {
       ];
     }
 
+    
     // Save to MongoDB Atlas
     const course = await Course.create({
       title,
@@ -240,7 +241,9 @@ const createCourse = async (req, res) => {
       data: course 
     });
 
-  } catch (error) {
+
+  } 
+  catch (error) {
     console.error("Create Course Critical Error:", error);
     res.status(500).json({ 
       success: false, 
