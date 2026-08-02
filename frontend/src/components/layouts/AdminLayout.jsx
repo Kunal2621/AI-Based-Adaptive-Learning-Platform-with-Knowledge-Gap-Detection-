@@ -17,7 +17,7 @@ import {
   Menu,
   Bell,
 } from "lucide-react";
-import banner from "../../assests/images/banner.png";
+import banner from "../../assests/images/banner.svg";
 
 // ─────────────────────────────────────────────────────────────
 // NAV ITEMS — admin specific
