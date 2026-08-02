@@ -2,6 +2,7 @@ const Course = require('../models/Course');
 const Submission = require('../models/Submission');
 const Quiz = require('../models/Quiz');
 const ai = require('../config/geminiConfig'); // Gemini connection for smart adaptive feedback
+const { mapCourseForStudent, computeProgress } = require('./courseController');
 
 // @desc    Get live dynamic analytics and AI recommendations for Student Dashboard
 // @route   GET /api/student/dashboard
@@ -15,7 +16,7 @@ const getStudentDashboard = async (req, res) => {
     const realSubmissions = await Submission.find({ student: studentId }).populate('quiz');
 
     // 2. Aggregate counts and averages dynamically
-    const enrolledCoursesCount = await Course.countDocuments({}); // Platform live courses active count
+    const enrolledCoursesCount = await Course.countDocuments({ students: studentId });
     const quizzesTaken = realSubmissions.length;
 
     let totalScoreSum = 0;
@@ -69,7 +70,7 @@ const getStudentDashboard = async (req, res) => {
     }
 
     const stats = {
-      enrolledCourses: enrolledCoursesCount || 1,
+      enrolledCourses: enrolledCoursesCount,
       quizzesTaken,
       avgScore: avgScore || 0,
       knowledgeGaps: knowledgeGapsCount,
@@ -78,8 +79,14 @@ const getStudentDashboard = async (req, res) => {
       topicScores
     };
 
-    // 3. Fetch real live courses available for student view context
-    const enrolledCourses = await Course.find().limit(3);
+    // 3. Fetch this student's actual enrolled courses for the dashboard preview
+    const enrolledCourseDocs = await Course.find({ students: studentId })
+      .sort({ createdAt: -1 })
+      .limit(3)
+      .populate('teacher', 'fullName email');
+    const enrolledCourses = await Promise.all(
+      enrolledCourseDocs.map(async (c) => mapCourseForStudent(c, await computeProgress(c._id, studentId)))
+    );
 
     // Formulate real-time recent quiz collection arrays
     const recentQuizzes = realSubmissions.slice(-2).map(sub => ({

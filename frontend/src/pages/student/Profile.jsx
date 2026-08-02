@@ -6,6 +6,7 @@ export default function Profile() {
   const { user, updateUser } = useAuth();
   const [form,     setForm]     = useState({ fullName: user?.fullName || "", bio: user?.bio || "", phone: user?.phone || "" });
   const [pwForm,   setPwForm]   = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
+  const [showPw,   setShowPw]   = useState({ currentPassword: false, newPassword: false, confirmPassword: false });
   const [saving,   setSaving]   = useState(false);
   const [pwSaving, setPwSaving] = useState(false);
   const [msg,      setMsg]      = useState(null); // { type: success|error, text }
@@ -182,7 +183,7 @@ export default function Profile() {
             { label: "New Password",     key: "newPassword",     placeholder: "Minimum 6 characters" },
             { label: "Confirm Password", key: "confirmPassword", placeholder: "Repeat new password" },
           ].map(f => {
-            const [show, setShow] = useState(false);
+            const show = showPw[f.key];
             return (
               <div key={f.key}>
                 <label className="text-xs font-semibold text-on-surface-variant block mb-1.5">{f.label}</label>
@@ -192,7 +193,7 @@ export default function Profile() {
                     onChange={e => setPwForm(p => ({ ...p, [f.key]: e.target.value }))}
                     placeholder={f.placeholder}
                     className="w-full pl-10 pr-11 py-2.5 bg-surface-container border border-outline-variant rounded-xl text-sm focus:outline-none focus:border-primary transition-colors" />
-                  <button type="button" onClick={() => setShow(s => !s)}
+                  <button type="button" onClick={() => setShowPw(p => ({ ...p, [f.key]: !p[f.key] }))}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface">
                     <span className="material-symbols-outlined text-xl">{show ? "visibility_off" : "visibility"}</span>
                   </button>

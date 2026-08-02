@@ -12,6 +12,8 @@ const CourseSchema = new mongoose.Schema({
       lessons: [{ title: { type: String, required: true }, content: String }]
     }
   ],
+  thumbnail: { type: String, default: null },
+  students: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   createdAt: { type: Date, default: Date.now }
 });
 

@@ -15,14 +15,18 @@ const mapCourseForStudent = (course, progress = 0) => ({
   teacher: course.teacher,
   thumbnail: course.thumbnail || null,
   topics: (course.modules || []).map((m) => ({
-    title: m.moduleName,
+    _id: m._id,
+    title: m.moduleName || m.title,
     materials: (m.lessons || []).map((l) => ({
-      type: 'note',
+      _id: l._id,
+      type: l.type || (l.videoUrl ? 'video' : 'note'),
       title: l.title,
       content: l.content || '',
+      url: l.url || l.fileUrl || l.videoUrl || l.link || '',
+      fileUrl: l.fileUrl || l.url || '',
+      videoUrl: l.videoUrl || ''
     })),
   })),
-  videos: [],
   progress,
   createdAt: course.createdAt,
 });

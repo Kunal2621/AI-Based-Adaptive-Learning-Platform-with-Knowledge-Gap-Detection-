@@ -1,23 +1,50 @@
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/authMiddleware');
-const { submitQuiz } = require('../controllers/quizController');
+
+// 🟢 Controllers import
+const { 
+  submitQuiz, 
+  getQuizById, 
+  getQuizzes, 
+  getMyResults, 
+  getAttemptById 
+} = require('../controllers/quizController'); 
+
 const { interceptAndGenerateAIQuiz } = require('../controllers/teacherController');
 const { generateAIQuiz } = require('../controllers/aiController');
 
-// 🟢 FIX: "Create Quiz" (manual form, CreateQuiz.jsx) posts to POST /api/quiz.
-// No route ever existed for this -> always returned 404. Wired it to the AI
-// interceptor so the manual form still produces a full AI-generated quiz
-// saved against the selected course.
+// -------------------------------------------------------------
+// 1. SPECIFIC / STATIC GET ROUTES (Pehle aani chahiye)
+// -------------------------------------------------------------
+
+// 🟢 GET All Quizzes (e.g., GET /api/quizzes or /api/quizzes?courseId=xxx)
+router.get('/', protect, getQuizzes);
+
+// 🟢 GET Student Quiz Results/Attempts List (MUST BE ABOVE /:id)
+router.get('/my-results', protect, getMyResults);
+
+// 🟢 GET Single Attempt Analysis Details by Submission ID
+router.get('/attempts/:id', protect, getAttemptById);
+
+// -------------------------------------------------------------
+// 2. DYNAMIC PARAMETER GET ROUTES (Hamesha static routes ke neeche)
+// -------------------------------------------------------------
+
+// 🟢 GET Single Quiz Details by Quiz ID
+router.get('/:id', protect, getQuizById);
+
+// -------------------------------------------------------------
+// 3. POST ROUTES (Actions & Submissions)
+// -------------------------------------------------------------
+
+// 🟢 "Create Quiz" manual form
 router.post('/', protect, interceptAndGenerateAIQuiz);
 
-// Standard endpoint for baseline core generation pipeline.
-// NOTE: server.js also registers app.post('/api/quiz/generate', ...) directly
-// using controllers/aiController.js BEFORE this router is mounted, so that
-// handler wins in practice for real traffic. This route is kept as a fallback
-// using the SAME controller (previously it used quizController's version,
-// which returns a different, incompatible question schema - see fix notes).
+// 🟢 AI Generation endpoint
 router.post('/generate', protect, generateAIQuiz);
+
+// 🟢 Submit Quiz
 router.post('/submit/:id', protect, submitQuiz);
 
 module.exports = router;

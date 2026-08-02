@@ -17,8 +17,9 @@ const RecommendationSchema = new mongoose.Schema({
     }
   ],
   studyNotes: {
-    type: String, // A brief, 3-4 bullet-point executive summary from AI
-    required: true
+    type: String,
+    required: false, // 🟢 FIX: Set required to false so empty string or fallback never fails validation
+    default: 'Core concepts review and key implementation rules.'
   }
 }, { timestamps: true });
 

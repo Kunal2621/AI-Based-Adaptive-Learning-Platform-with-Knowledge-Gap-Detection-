@@ -5,7 +5,6 @@ import banner from "../../assests/images/banner.png";
 const NAV = [
   { to: "/student/dashboard",       icon: "dashboard",      label: "Dashboard" },
   { to: "/student/courses",         icon: "library_books",  label: "Courses" },
-  { to: "/student/quiz",            icon: "quiz",           label: "Quizzes" },
   { to: "/student/recommendations", icon: "auto_awesome",   label: "AI Recommendations" },
   { to: "/student/reports",         icon: "bar_chart",      label: "Reports" },
   { to: "/student/chatbot",         icon: "smart_toy",      label: "AI Chatbot" },

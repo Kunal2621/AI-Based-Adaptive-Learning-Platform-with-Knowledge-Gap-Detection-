@@ -11,10 +11,12 @@ const authRoutes = require('./routes/authRoutes');
 const studentRoutes = require('./routes/studentRoutes');
 const teacherRoutes = require('./routes/teacherRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const quizRoutes = require('./routes/quizRoutes'); // 🟢 Main Unified Quiz Router
 
 // Load controllers and middleware
 const { protect } = require('./middleware/authMiddleware');
 const { generateAIQuiz } = require('./controllers/aiController');
+const { getEnrolledCourses } = require('./controllers/courseController');
 
 // Analytics & Reports Routes
 const adminAnalyticsRoutes = require('./routes/adminAnalyticsRoutes');
@@ -36,7 +38,7 @@ app.use(cors());
 app.use(express.json());
 
 // =========================================================================
-// 🛠️ COMPATIBILITY & QUIZ MANAGEMENT ROUTES
+// 🛠️ COMPATIBILITY & AUTH ROUTES
 // =========================================================================
 
 // Handle GET /api/auth/me
@@ -56,70 +58,11 @@ app.get('/api/auth/me', protect, async (req, res) => {
       } 
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Auth persistent loop crack.', error: err.message });
+    res.status(500).json({ success: false, message: 'Auth error.', error: err.message });
   }
 });
 
-// Fix 404 /api/student/enrolled-courses
-app.get('/api/student/enrolled-courses', protect, async (req, res) => {
-  try {
-    const courses = await Course.find().populate('teacher', 'name');
-    res.status(200).json({ success: true, data: courses });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-// Fix 404 /api/courses
-app.get('/api/courses', protect, async (req, res) => {
-  try {
-    const courses = await Course.find().populate('teacher', 'name');
-    res.status(200).json({ success: true, data: courses });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-// Single Course Fetching Route
-app.get('/api/courses/:id', protect, async (req, res) => {
-  try {
-    const course = await Course.findById(req.params.id).populate('teacher', 'name');
-    if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
-    
-    res.status(200).json({ 
-      success: true, 
-      data: course,
-      course: course,
-      modules: course.modules || [],
-      topicsCount: course.modules ? course.modules.length : 0
-    });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-// 🟢 QUIZ FETCH ROUTES
-app.get('/api/quizzes', protect, async (req, res) => {
-  try {
-    const { courseId } = req.query;
-    const query = courseId ? { courseId } : {};
-    const quizzes = await Quiz.find(query).sort({ createdAt: -1 });
-    res.status(200).json({ success: true, data: quizzes });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-app.get('/api/quiz', protect, async (req, res) => {
-  try {
-    const quizzes = await Quiz.find().sort({ createdAt: -1 });
-    res.status(200).json({ success: true, data: quizzes });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-// 🟢 DIRECT AI QUIZ GENERATION ROUTES
+// 🟢 DIRECT AI QUIZ GENERATION ALIASES
 app.post('/api/quiz/generate', protect, generateAIQuiz);
 app.post('/api/quizzes/generate', protect, generateAIQuiz);
 app.post('/api/ai/generate-quiz', protect, generateAIQuiz);
@@ -202,21 +145,30 @@ app.put('/api/quizzes/:id/assign', protect, async (req, res) => {
 });
 
 // =========================================================================
+// 🚀 ROUTE BINDINGS
+// =========================================================================
 
-// Base Router Bindings
 app.use('/api/auth', authRoutes); 
 app.use('/api/student', studentRoutes);
 app.use('/api/teacher', teacherRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Fallback/Core dynamic quiz pipeline channel
-app.use('/api/quiz', require('./routes/quizRoutes'));
+// Courses & Enrollment APIs
+app.use('/api/courses', require('./routes/courseRoutes'));
+app.get('/api/student/enrolled-courses', protect, getEnrolledCourses);
 
-// Analytics & Reports Endpoints Mount
+// Student Reports, Recommendations, & Users APIs
+app.use('/api/reports', require('./routes/reportRoutes'));
+app.use('/api/recommendations', require('./routes/recommendationRoutes'));
+app.use('/api/users', require('./routes/userRoutes'));
+
+// 🟢 FIX: UNIFIED QUIZ MANAGEMENT ROUTES (Points both singular & plural endpoints to updated quizRoutes)
+app.use('/api/quiz', quizRoutes);
+app.use('/api/quizzes', quizRoutes);
+
+// Analytics & Chatbot Routes
 app.use('/api/admin', adminAnalyticsRoutes);   
 app.use('/api/teacher', teacherAnalyticsRoutes); 
-
-// Chatbot Endpoints Mount
 app.use('/api/chatbot', chatbotRoutes);
 
 // Base Route Test

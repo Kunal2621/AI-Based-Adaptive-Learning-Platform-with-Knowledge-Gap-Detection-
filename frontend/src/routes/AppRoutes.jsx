@@ -64,7 +64,8 @@ const AppRoutes = () => {
         <Route path="dashboard" element={<StudentDashboard />} />
         <Route path="courses" element={<Courses />} />
         <Route path="courses/:id" element={<CourseDetails />} />
-        <Route path="quiz/" element={<Quiz />} />
+        <Route path="quiz" element={<Quiz />} />
+        <Route path="quiz/:id" element={<Quiz />} />
         <Route path="results" element={<Results />} />
         <Route path="results/:id" element={<Results />} />
         <Route path="recommendations" element={<Recommendations />} />
